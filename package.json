@@ -1,0 +1,27 @@
+{
+  "name": "seven_hells",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/g0dnerd/sevenhells.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/g0dnerd/sevenhells/issues"
+  },
+  "homepage": "https://github.com/g0dnerd/sevenhells#readme",
+  "dependencies": {
+    "phaser": "^3.60.0"
+  },
+  "devDependencies": {
+    "grunt": "^1.6.1",
+    "grunt-contrib-connect": "^4.0.0"
+  }
+}
