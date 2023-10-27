@@ -13,6 +13,7 @@ const game = new Phaser.Game(gameConfig);
 function preload() {
     // Import image assets
     this.load.image('map', 'assets/images/map.png');
+    this.load.image('stone', 'assets/images/stone.png');
     this.load.spritesheet('basic_human', 'assets/images/enemy_basic_spritesheet.png',
         { frameWidth: 32, frameHeight: 32 });
 }
@@ -80,13 +81,13 @@ function create() {
         repeat: -1
     });
 
-    let enemy = this.add.sprite(0, 116, 'basic_human');
+    let enemy = this.add.sprite(0, 466, 'basic_human');
     enemy.play('enemy_walk_right')
 
     // Move the enemy right for a certain distance
     let moveRight = this.tweens.add({
         targets: enemy,
-        x: { value: 225, duration: 5000 },
+        x: { value: 625, duration: 5000 },
         onComplete: function () {
             // Play the walk down animation
             enemy.play('enemy-walk-down');
