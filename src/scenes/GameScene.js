@@ -23,7 +23,7 @@ export default class GameScene extends Phaser.Scene {
 			this.mouseDown(pointer.x, pointer.y);
 		});
 
-		// Create an instance of the A* pathfinding algorithm
+		// Create an instance of the A* pathfinding algorithm and add the spawn point and checkpoints
 		this.astar = new AStar(this.mapGrid);
 		this.startNode = this.astar.nodes[0][6];
 		this.checkpointsList = [
@@ -69,7 +69,16 @@ export default class GameScene extends Phaser.Scene {
 
 	spawnEnemy (type, x, y) {
 		let enemy = new Enemy(this, x*32, y*32);
-		let path = this.astar.findPath(this.startNode, this.checkpointsList);
+		let path = this.astar.findPath(this.startNode, this.checkpointsList[0]);
+	   	if (path && path.length > 0) {
+	   		console.log('path found.');
+	        for (let i = 0; i < path.length; i++) {
+	            console.log(`Node ${i}: x=${path[i].x}, y=${path[i].y}`);
+	        }
+	    } else {
+	        console.log('No path found.');
+	    }
+
 		enemy.anims.play('walk-right', true);
 	}
 }

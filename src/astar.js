@@ -4,6 +4,8 @@ export default class AStar {
         this.grid = grid;
         // Convert the grid into nodes for pathfinding
         this.nodes = this.createNodes(grid);
+        console.log(`astar.nodes at 0,6 has coords of ${this.nodes[0][6].x}, ${this.nodes[0][6].y}, and wall of ${this.nodes[0][6].wall}`);
+        console.log(`astar.nodes at 1,6 has coords of ${this.nodes[1][6].x}, ${this.nodes[1][6].y}, and wall of ${this.nodes[1][6].wall}`);
     }
 
 
@@ -24,9 +26,9 @@ export default class AStar {
                     heuristic: null,  // Estimated cost from this node to the end
                     previous: null,  // The previous node in the path
                     visited: false,  // Has this node been visited yet?
-                    wall: grid[x][y] !== 0  // Is this node a wall?
+                    wall: false  // Is this node a wall?
                 };
-				console.log(`created new node at ${x}, ${y}`);
+				// console.log(`created new node at ${x}, ${y}`);
                 rowNodes.push(node);
             }
             nodes.push(rowNodes);
@@ -53,46 +55,48 @@ export default class AStar {
      * @param {Array} checkpoints - An array of nodes to pass through.
      * @return {Array|null} The path or null if no path was found.
      */
-    findPath(start, checkpoints) {
-    	console.log(`findPath called for start node ${start.x}, ${start.y}`);
-        start.cost = 0;
-        start.heuristic = this.heuristic(start, checkpoints[0]);
+    findPath(start, target) {
+	    console.log(`findPath called for start node ${start.x}, ${start.y} targeting node ${target.x}, ${target.y}`);
 
-        // Nodes to be evaluated
-        let openSet = [start];
-        // Nodes that have been evaluated
-        let closedSet = [];
+	    start.cost = 0;
+	    start.heuristic = this.heuristic(start, target);
 
-        while (openSet.length > 0) {
-            // Get the node with the lowest score (cost + heuristic)
-            let current = openSet.sort((a, b) => (a.cost + a.heuristic) - (b.cost + b.heuristic))[0];
+	    // Nodes to be evaluated
+	    let openSet = [start];
+	    // Nodes that have been evaluated
+	    let closedSet = [];
 
-            // If we've reached the current checkpoint
-            if (current === checkpoints[0]) {
-                checkpoints.shift();
-                if (checkpoints.length === 0) return this.reconstructPath(current);
-            }
+	    while (openSet.length > 0) {
+	        // Get the node with the lowest score (cost + heuristic)
+	        let current = openSet.sort((a, b) => (a.cost + a.heuristic) - (b.cost + b.heuristic))[0];
+	        console.log(`current node is at ${current.x}, ${current.y}`);
 
-            openSet = openSet.filter(node => node !== current);
-            closedSet.push(current);
+	        // If we've reached the target
+	        if (current === target) {
+	            return this.reconstructPath(current);
+	        }
 
-            console.log(`calling neighbors of node at ${current.x}, ${current.y}`);
-            let neighbors = this.getNeighbors(current);
+	        openSet = openSet.filter(node => node !== current);
+	        closedSet.push(current);
 
-            for (let neighbor of neighbors) {
-                if (closedSet.includes(neighbor) || neighbor.wall) continue;
+	        let neighbors = this.getNeighbors(current);
 
-                let tentativeCost = current.cost + 1;
-                if (tentativeCost < neighbor.cost) {
-                    neighbor.previous = current;
-                    neighbor.cost = tentativeCost;
-                    neighbor.heuristic = this.heuristic(neighbor, checkpoints[0]);
-                    if (!openSet.includes(neighbor)) openSet.push(neighbor);
-                }
-            }
-        }
-        return null; // No path found
-    }
+	        for (let neighbor of neighbors) {
+	            if (closedSet.includes(neighbor) || neighbor.wall) continue;
+
+	            let tentativeCost = current.cost + 1;
+	            if (tentativeCost < neighbor.cost) {
+	                neighbor.previous = current;
+	                neighbor.cost = tentativeCost;
+	                neighbor.heuristic = this.heuristic(neighbor, target);
+	                if (!openSet.includes(neighbor)) openSet.push(neighbor);
+	            }
+	        }
+	    }
+	    console.log('no path found.');
+	    return null; // No path found
+	}
+
 
     /**
      * Gets the neighboring nodes of the given node.
@@ -104,12 +108,22 @@ export default class AStar {
         let x = node.x;
         let y = node.y;
 
-        console.log(`trying to get neighbors of node at ${x}, ${y}`);
-
-        if (this.grid[x - 1] && this.grid[x - 1][y]) neighbors.push(this.grid[x - 1][y]);
-        if (this.grid[x + 1] && this.grid[x + 1][y]) neighbors.push(this.grid[x + 1][y]);
-        if (this.grid[x][y - 1]) neighbors.push(this.grid[x][y - 1]);
-        if (this.grid[x][y + 1]) neighbors.push(this.grid[x][y + 1]);
+        if (this.nodes[x - 1] && this.nodes[x - 1][y]) {
+	        console.log(`node at ${x}, ${y} has a neighbor at ${x - 1}, ${y}`);
+	        neighbors.push(this.nodes[x - 1][y]);
+	    }
+	    if (this.nodes[x + 1] && this.nodes[x + 1][y]) {
+	        console.log(`node at ${x}, ${y} has a neighbor at ${x + 1}, ${y}`);
+	        neighbors.push(this.nodes[x + 1][y]);
+	    }
+	    if (this.nodes[x][y - 1]) {
+	        console.log(`node at ${x}, ${y} has a neighbor at ${x}, ${y - 1}`);
+	        neighbors.push(this.nodes[x][y - 1]);
+	    }
+	    if (this.nodes[x][y + 1]) {
+	        console.log(`node at ${x}, ${y} has a neighbor at ${x}, ${y + 1}`);
+	        neighbors.push(this.nodes[x][y + 1]);
+	    }
 
         return neighbors;
     }
