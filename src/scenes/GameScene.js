@@ -13,7 +13,7 @@ export default class GameScene extends Phaser.Scene {
 		this.add.image(640, 480, 'grid');
 
 		// init game state variable - game starts in a placement phase
-		this.mapGrid = Array(30).fill(null).map(() => Array(40).fill(0)); 
+		this.mapGrid = Array(40).fill(null).map(() => Array(30).fill(0)); 
 
 		// Mouse event listener
 		this.input.on('pointerdown', (pointer) => {
