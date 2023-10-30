@@ -1,9 +1,11 @@
 import Stone from '../objects/Stone.js';
+import Enemy from '../objects/Enemy.js';
 
 export default class GameScene extends Phaser.Scene {
 	constructor() {
 		super({key: 'GameScene' });
 		this.mapgrid = [];
+		// init game state variable - game starts in a placement phase
 		this.stateWave = false;
 	}
 
@@ -12,7 +14,6 @@ export default class GameScene extends Phaser.Scene {
 		this.add.image(640, 480, 'map');
 		this.add.image(640, 480, 'grid');
 
-		// init game state variable - game starts in a placement phase
 		this.mapGrid = Array(40).fill(null).map(() => Array(30).fill(0)); 
 
 		// Mouse event listener
@@ -20,6 +21,7 @@ export default class GameScene extends Phaser.Scene {
 			this.mouseDown(pointer.x, pointer.y);
 		});
 
+		this.spawnEnemy('basic_human', 0, 6);
 	}
 
 	update() {
@@ -55,5 +57,10 @@ export default class GameScene extends Phaser.Scene {
 	centerGridCoords (x, y) {
 		// returns the center of the grid square the user clicked in
 		return [(x-x%32), (y-y%32)];
+	}
+
+	spawnEnemy (type, x, y) {
+		let enemy = new Enemy(this, x*32, y*32);
+		enemy.anims.play('walk-right', true);
 	}
 }

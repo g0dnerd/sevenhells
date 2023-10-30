@@ -21,7 +21,33 @@ export default class BootScene extends Phaser.Scene {
 	}
 
 	create () {
-		// Once assets are loaded, transition to the next scene:
+		// Load animations
+        this.anims.create({
+            key: 'walk-down',
+            frames: this.anims.generateFrameNumbers('basic_human', { start: 0, end: 3 }),
+            frameRate: 10,
+            repeat: -1
+        });
+        this.anims.create({
+            key: 'walk-left',
+            frames: this.anims.generateFrameNumbers('basic_human', { start: 8, end: 11 }),
+            frameRate: 10,
+            repeat: -1
+        });
+        this.anims.create({
+            key: 'walk-up',
+            frames: this.anims.generateFrameNumbers('basic_human', { start: 16, end: 19 }),
+            frameRate: 10,
+            repeat: -1
+        });
+        this.anims.create({
+            key: 'walk-right',
+            frames: this.anims.generateFrameNumbers('basic_human', { start: 24, end: 27 }),
+            frameRate: 10,
+            repeat: -1
+        });
+
+		// Once assets and animations are loaded, transition to the next scene:
 		this.scene.start('MainMenuScene');
 	}
 }
