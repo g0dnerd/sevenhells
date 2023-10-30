@@ -3,9 +3,8 @@ export default class Enemy extends Phaser.GameObjects.Sprite {
         super(scene, x, y, 'basic_human');
 
         scene.add.existing(this);
+        // Set the origin to the center
         this.setOrigin(0, 0);
-
-        // this.anims.play('walk-right', true);
 	}
 
 	kill() {

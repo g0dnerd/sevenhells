@@ -1,11 +1,10 @@
-export default class Stone {
+export default class Stone extends Phaser.GameObjects.Sprite {
 	constructor(scene, x, y) {
-		this.scene = scene;
-		this.x = x;
-		this.y = y;
-        this.sprite = this.scene.add.sprite(x, y, 'stone')
+        super(scene, x, y, 'stone');
+
+        scene.add.existing(this);
         // Set the origin to the center
-        this.sprite.setOrigin(0, 0);
+        this.setOrigin(0, 0);
 	}
 	
 }
