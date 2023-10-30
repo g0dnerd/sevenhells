@@ -4,8 +4,6 @@ export default class AStar {
         this.grid = grid;
         // Convert the grid into nodes for pathfinding
         this.nodes = this.createNodes(grid);
-        console.log(`astar.nodes at 0,6 has coords of ${this.nodes[0][6].x}, ${this.nodes[0][6].y}, and wall of ${this.nodes[0][6].wall}`);
-        console.log(`astar.nodes at 1,6 has coords of ${this.nodes[1][6].x}, ${this.nodes[1][6].y}, and wall of ${this.nodes[1][6].wall}`);
     }
 
 
@@ -69,8 +67,7 @@ export default class AStar {
 	    while (openSet.length > 0) {
 	        // Get the node with the lowest score (cost + heuristic)
 	        let current = openSet.sort((a, b) => (a.cost + a.heuristic) - (b.cost + b.heuristic))[0];
-	        console.log(`current node is at ${current.x}, ${current.y}`);
-
+	        
 	        // If we've reached the target
 	        if (current === target) {
 	            return this.reconstructPath(current);
@@ -109,19 +106,15 @@ export default class AStar {
         let y = node.y;
 
         if (this.nodes[x - 1] && this.nodes[x - 1][y]) {
-	        console.log(`node at ${x}, ${y} has a neighbor at ${x - 1}, ${y}`);
 	        neighbors.push(this.nodes[x - 1][y]);
 	    }
 	    if (this.nodes[x + 1] && this.nodes[x + 1][y]) {
-	        console.log(`node at ${x}, ${y} has a neighbor at ${x + 1}, ${y}`);
 	        neighbors.push(this.nodes[x + 1][y]);
 	    }
 	    if (this.nodes[x][y - 1]) {
-	        console.log(`node at ${x}, ${y} has a neighbor at ${x}, ${y - 1}`);
 	        neighbors.push(this.nodes[x][y - 1]);
 	    }
 	    if (this.nodes[x][y + 1]) {
-	        console.log(`node at ${x}, ${y} has a neighbor at ${x}, ${y + 1}`);
 	        neighbors.push(this.nodes[x][y + 1]);
 	    }
 
