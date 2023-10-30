@@ -1,5 +1,6 @@
 import Stone from '../objects/Stone.js';
 import Enemy from '../objects/Enemy.js';
+import AStar from '../astar.js';
 
 export default class GameScene extends Phaser.Scene {
 	constructor() {
@@ -14,12 +15,26 @@ export default class GameScene extends Phaser.Scene {
 		this.add.image(640, 480, 'map');
 		this.add.image(640, 480, 'grid');
 
+		// Initialize an empty grid
 		this.mapGrid = Array(40).fill(null).map(() => Array(30).fill(0)); 
 
 		// Mouse event listener
 		this.input.on('pointerdown', (pointer) => {
 			this.mouseDown(pointer.x, pointer.y);
 		});
+
+		// Create an instance of the A* pathfinding algorithm
+		this.astar = new AStar(this.mapGrid);
+		this.startNode = this.astar.nodes[0][6];
+		this.checkpointsList = [
+			this.astar.nodes[10][6],
+			this.astar.nodes[10][15],
+			this.astar.nodes[20][15],
+			this.astar.nodes[30][15],
+			this.astar.nodes[30][6],
+			this.astar.nodes[20][6],
+			this.astar.nodes[20][24]
+		];
 
 		this.spawnEnemy('basic_human', 0, 6);
 	}
@@ -34,7 +49,6 @@ export default class GameScene extends Phaser.Scene {
 	    }
 	}
 
-
 	placeItem (x, y) {
 		let cleanedCoords = this.centerGridCoords(x, y);
 		console.log(`trying to place at ${cleanedCoords[0]/32},${cleanedCoords[1]/32}`);
@@ -48,12 +62,6 @@ export default class GameScene extends Phaser.Scene {
 		}
 	}
 
-	/* mapCoordsToGrid (y, x) {
-		// converts map coordinates to indices on the 32x32px grid
-		console.log(`Returning max of ${y}, ${x}`);
-		return [Math.max(29,y % 32), Math.max(39,x % 32)];
-	} */
-
 	centerGridCoords (x, y) {
 		// returns the center of the grid square the user clicked in
 		return [(x-x%32), (y-y%32)];
@@ -61,6 +69,7 @@ export default class GameScene extends Phaser.Scene {
 
 	spawnEnemy (type, x, y) {
 		let enemy = new Enemy(this, x*32, y*32);
+		let path = this.astar.findPath(this.startNode, this.checkpointsList);
 		enemy.anims.play('walk-right', true);
 	}
 }
