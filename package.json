@@ -22,6 +22,7 @@
   },
   "devDependencies": {
     "grunt": "^1.6.1",
-    "grunt-contrib-connect": "^4.0.0"
+    "grunt-contrib-connect": "^4.0.0",
+    "grunt-legacy-util": "^2.0.1"
   }
 }
