@@ -27,6 +27,7 @@ export default class GameScene extends Phaser.Scene {
 		this.astar = new AStar(this.mapGrid);
 		this.startNode = this.astar.nodes[0][6];
 		this.checkpointsList = [
+			this.astar.nodes[0][6],
 			this.astar.nodes[10][6],
 			this.astar.nodes[10][15],
 			this.astar.nodes[20][15],
@@ -67,11 +68,35 @@ export default class GameScene extends Phaser.Scene {
 		return [(x-x%32), (y-y%32)];
 	}
 
+	sendOnPath (enemy, astar, checkpoints) {
+		if (checkpoints.length === 0) {
+			return;
+		}
+
+		const currentCheckpoint = checkpoints[0];
+		checkpoints.shift();
+		console.log(`Moving from ${currentCheckpoint.x}, ${currentCheckpoint.y} to ${checkpoints[0].x}, ${checkpoints[0].y}`);
+		const path = astar.findPath(currentCheckpoint, checkpoints[0]);
+
+		for (let i = 0; i < path.length; i++) {
+			console.log(`Path at ${i}: ${path[i].x}, ${path[i].y}`);
+		}
+
+		if (path) {
+			enemy.moveAlongPath(path, () => {
+				this.sendOnPath(enemy, astar, checkpoints.shift());
+			});
+		} else {
+
+		}
+	}
+
 	spawnEnemy (type, x, y) {
 		let enemy = new Enemy(this, x*32, y*32);
-		let path = this.astar.findPath(this.startNode, this.checkpointsList[0]);
+
+		let checkpoints = this.checkpointsList.slice();
 
 		enemy.anims.play('walk-right', true);
-	    enemy.moveAlongPath(path);
+		this.sendOnPath(enemy, this.astar, checkpoints);
 	}
 }

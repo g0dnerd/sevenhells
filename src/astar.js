@@ -54,7 +54,7 @@ export default class AStar {
      * @return {Array|null} The path or null if no path was found.
      */
     findPath(start, target) {
-	    console.log(`findPath called for start node ${start.x}, ${start.y} targeting node ${target.x}, ${target.y}`);
+	    // console.log(`findPath called for start node ${start.x}, ${start.y} targeting node ${target.x}, ${target.y}`);
 
 	    start.cost = 0;
 	    start.heuristic = this.heuristic(start, target);
