@@ -34,7 +34,8 @@ export default class GameScene extends Phaser.Scene {
 			this.astar.nodes[30][15],
 			this.astar.nodes[30][6],
 			this.astar.nodes[20][6],
-			this.astar.nodes[20][24]
+			this.astar.nodes[20][22],
+			this.astar.nodes[39][22]
 		];
 
 		this.spawnEnemy('basic_human', 0, 6);
@@ -73,6 +74,7 @@ export default class GameScene extends Phaser.Scene {
 		// check if there are no checkpoints left to process
 		if (checkpoints.length === 0) {
 			console.log('All checkpoints reached.');
+			enemy.anims.stop();
 			return;
 		}
 
@@ -108,8 +110,7 @@ export default class GameScene extends Phaser.Scene {
 		let enemy = new Enemy(this, x*32, y*32);
 
 		let checkpoints = this.checkpointsList.slice();
-
-		enemy.anims.play('walk-right', true);
+		
 		this.sendOnPath(enemy, this.astar, checkpoints);
 	}
 }
