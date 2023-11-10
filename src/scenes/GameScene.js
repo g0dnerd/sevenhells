@@ -16,6 +16,7 @@ export default class GameScene extends Phaser.Scene {
 		this.add.image(640, 480, 'grid');
 
 		// Initialize an empty grid
+		this.gridSize = 32;
 		this.mapGrid = Array(40).fill(null).map(() => Array(30).fill(0)); 
 
 		// Mouse event listener
@@ -110,7 +111,7 @@ export default class GameScene extends Phaser.Scene {
 		let enemy = new Enemy(this, x*32, y*32);
 
 		let checkpoints = this.checkpointsList.slice();
-		
+
 		this.sendOnPath(enemy, this.astar, checkpoints);
 	}
 }

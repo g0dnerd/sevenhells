@@ -24,6 +24,11 @@ export default class Enemy extends Phaser.GameObjects.Sprite {
 	    // Extract the first node from the path to avoid altering the original path array
 	    let nextNode = path[0];
 
+	    /* let distance = Phaser.Math.Distance.Between(this.x * this.scene.gridSize, this.y * this.scene.gridSize, nextNode.x, nextNode.y);
+	    let duration = (distance / this.speed) * 1000;
+	    console.log(`Distance is ${distance}`);
+	    console.log(`Duration is ${duration}`);*/
+
 	    // Determine the direction
 		let xDirection = nextNode.x*32 - this.x;
 		let yDirection = nextNode.y*32 - this.y;
