@@ -22,10 +22,13 @@ You can combine three or more gems into special gems with cool abilites.
 * Demonic (Epic)
 * Abyssal (Legendary)
 * Diabolical (Mythic)  
-  
 ## TODOs
-* build pathfinding logic (phaser3 built-in?)
-* let player place turrets
+* let player place turrets -> not on checkpoints
+* actually check for walls in A*
 * let turrets shoot things
 * generate embers for kills
-* introduce rarity system
+* introduce rarity system  
+## DONE
+* simple, but robust A* implementation using a list of checkpoints
+* enemy class as an extension of phaser's sprite class with a moveAlongPath function
+* ability for the player to place rocks on empty tiles 
