@@ -27,7 +27,7 @@ export default class GameScene extends Phaser.Scene {
 		this.astar = new AStar(this.mapGrid);
 		this.startNode = this.astar.nodes[0][6];
 		this.checkpointsList = [
-			this.astar.nodes[0][6],
+			// this.astar.nodes[0][6],
 			this.astar.nodes[10][6],
 			this.astar.nodes[10][15],
 			this.astar.nodes[20][15],
@@ -69,24 +69,37 @@ export default class GameScene extends Phaser.Scene {
 	}
 
 	sendOnPath (enemy, astar, checkpoints) {
+		console.log('Current checkpoints list:', checkpoints.map(cp => `(${cp.x},${cp.y})`).join(', '));
+		// check if there are no checkpoints left to process
 		if (checkpoints.length === 0) {
+			console.log('All checkpoints reached.');
 			return;
 		}
 
-		const currentCheckpoint = checkpoints[0];
-		checkpoints.shift();
-		console.log(`Moving from ${currentCheckpoint.x}, ${currentCheckpoint.y} to ${checkpoints[0].x}, ${checkpoints[0].y}`);
-		const path = astar.findPath(currentCheckpoint, checkpoints[0]);
+		// Get the next checkpoint to move to
+		const nextCheckpoint = checkpoints[0];
+		console.log('Moving to next checkpoint:', nextCheckpoint);
+		console.log(`Enemy current node: x:${enemy.currentNode.x}, y:${enemy.currentNode.y}`);
 
-		for (let i = 0; i < path.length; i++) {
+		// Find the path to the next checkpoint
+		const path = astar.findPath(enemy.currentNode, nextCheckpoint);
+		console.log('Generated path to next checkpoint:', path.map(node => `(${node.x},${node.y})`).join(', '));
+
+		/* for (let i = 0; i < path.length; i++) {
 			console.log(`Path at ${i}: ${path[i].x}, ${path[i].y}`);
-		}
+		}*/
 
-		if (path) {
-			enemy.moveAlongPath(path, () => {
-				this.sendOnPath(enemy, astar, checkpoints.shift());
+		// If a path is found, move the enemy along it 
+		if (path && path.length > 0) {
+			
+			enemy.moveAlongPath(path, 300, () => {
+				// After reaching the next checkpoint, remove it from the list
+				// and continue
+				checkpoints.shift();
+				this.sendOnPath(enemy, astar, checkpoints);
 			});
 		} else {
+			console.log("No path found to the next checkpoint");
 
 		}
 	}
