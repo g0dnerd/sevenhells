@@ -13,7 +13,7 @@ export default class Enemy extends Phaser.GameObjects.Sprite {
 	}
 
 	moveAlongPath(path, speed = 300, onCompleteCallback) {
-	    console.log('moveAlongPath called.');
+	    // console.log('moveAlongPath called.');
 
 	    // Ensure there is a path to follow
 	    if (!path || path.length === 0) {
@@ -24,10 +24,18 @@ export default class Enemy extends Phaser.GameObjects.Sprite {
 	    // Extract the first node from the path to avoid altering the original path array
 	    let nextNode = path[0];
 
-	    /* let distance = Phaser.Math.Distance.Between(this.x * this.scene.gridSize, this.y * this.scene.gridSize, nextNode.x, nextNode.y);
-	    let duration = (distance / this.speed) * 1000;
-	    console.log(`Distance is ${distance}`);
-	    console.log(`Duration is ${duration}`);*/
+	    let testDistance = Phaser.Math.Distance.Between(320, 192, 320, 480);
+
+	    /* console.log(`Test distance is ${testDistance}`);
+	    console.log(`Enemy coords are ${this.x}, ${this.y}`);
+	    console.log(`Target node coords are ${nextNode.x}, ${nextNode.y}`);
+	    console.log(`Scene grid size is ${this.scene.gridSize}`);*/
+
+	    let distance = Phaser.Math.Distance.Between(this.x, this.y, nextNode.x * this.scene.gridSize, nextNode.y * this.scene.gridSize);
+	    let duration = (distance / speed) * 1000;
+
+	    /* console.log(`Distance is ${distance}`);
+	    console.log(`Duration is ${duration}`); */
 
 	    // Determine the direction
 		let xDirection = nextNode.x*32 - this.x;

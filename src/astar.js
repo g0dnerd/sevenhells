@@ -84,7 +84,6 @@ export default class AStar {
             let current = openSet.shift(); // Remove the first element
 
             if (current.x === target.x && current.y === target.y) {
-                console.log("Reconstructing");
                 return this.reconstructPath(current);
             }
 
@@ -95,16 +94,16 @@ export default class AStar {
 
             for (let neighbor of neighbors) {
                 let neighborKey = neighbor.x + '-' + neighbor.y;
-                console.log(`Checking neighbor: (${neighbor.x},${neighbor.y})`);
+                // console.log(`Checking neighbor: (${neighbor.x},${neighbor.y})`);
                 // Check if neighbor is in closed set with a direct property access
                 if (closedSet[neighborKey] || neighbor.wall) {
-                    console.log(`Neighbor: (${neighbor.x},${neighbor.y}) is in closed set or is a wall`);
+                    // console.log(`Neighbor: (${neighbor.x},${neighbor.y}) is in closed set or is a wall`);
                     continue;
                 }
 
                 let tentativeCost = current.cost + 1;
                 if (tentativeCost < neighbor.cost) {
-                    console.log(`Updating neighbor: (${neighbor.x},${neighbor.y}) with new cost and previous node (${current.x},${current.y})`);
+                    // console.log(`Updating neighbor: (${neighbor.x},${neighbor.y}) with new cost and previous node (${current.x},${current.y})`);
                     // Update neighbor properties
                     neighbor.previous = current;
                     neighbor.cost = tentativeCost;
@@ -133,19 +132,19 @@ export default class AStar {
         let y = node.y;
 
         if (this.nodes[x - 1] && this.nodes[x - 1][y]) {
-            console.log(`Node at ${x}, ${y} has a neighbor at {x-1},{y}`);
+            // console.log(`Node at ${x}, ${y} has a neighbor at {x-1},{y}`);
 	        neighbors.push(this.nodes[x - 1][y]);
 	    }
 	    if (this.nodes[x + 1] && this.nodes[x + 1][y]) {
-            console.log(`Node at ${x}, ${y} has a neighbor at {x+1},{y}`);
+            // console.log(`Node at ${x}, ${y} has a neighbor at {x+1},{y}`);
 	        neighbors.push(this.nodes[x + 1][y]);
 	    }
 	    if (this.nodes[x][y - 1]) {
 	        neighbors.push(this.nodes[x][y - 1]);
-            console.log(`Node at ${x}, ${y} has a neighbor at {x},{y-1}`);
+            // console.log(`Node at ${x}, ${y} has a neighbor at {x},{y-1}`);
 	    }
 	    if (this.nodes[x][y + 1]) {
-            console.log(`Node at ${x}, ${y} has a neighbor at {x},{y+1}`);
+            // console.log(`Node at ${x}, ${y} has a neighbor at {x},{y+1}`);
 	        neighbors.push(this.nodes[x][y + 1]);
 	    }
 
@@ -158,16 +157,16 @@ export default class AStar {
      * @return {Array} The path from start to end.
      */
     reconstructPath(current) {
-        console.log(`Starting to reconstruct path from node: (${current.x},${current.y})`);
+        // console.log(`Starting to reconstruct path from node: (${current.x},${current.y})`);
         let path = [current];
         let steps = 0; // Add a step counter to prevent infinite loops
         while (current.previous) {
             steps++;
             if (steps > this.grid.length * this.grid[0].length) { // Prevent infinite loops
-                console.log("Infinite loop detected in path reconstruction.");
+                // console.log("Infinite loop detected in path reconstruction.");
                 break;
             }
-            console.log(`Adding node: (${current.previous.x},${current.previous.y}) to path with current node: (${current.x},${current.y})`);
+            // console.log(`Adding node: (${current.previous.x},${current.previous.y}) to path with current node: (${current.x},${current.y})`);
             if (current.x === current.previous.x && current.y === current.previous.y) {
                 console.log(`Cycle detected: current node is the same as previous node at (${current.x},${current.y}).`);
                 break;
@@ -175,7 +174,7 @@ export default class AStar {
             current = current.previous;
             path.unshift(current);
         }
-        console.log("Finished reconstructing", path.map(n => `(${n.x},${n.y})`).join(" -> "));
+        // console.log("Finished reconstructing", path.map(n => `(${n.x},${n.y})`).join(" -> "));
         return path;
     }
 
