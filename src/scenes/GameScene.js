@@ -29,7 +29,7 @@ export default class GameScene extends Phaser.Scene {
 		this.currentLevel = 1;
 
 		// Initialize gem chances
-		this.gemChances = [1, 0, 0, 0, 0, 0, 0];
+		this.gemChances = [0.4, 0.4, 0.4, 0, 0, 0, 0];
 
 		// Create an instance of the A* pathfinding algorithm and add the spawn point and checkpoints
 		this.astar = new AStar(this.mapGrid);
