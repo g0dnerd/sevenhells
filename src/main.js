@@ -4,7 +4,7 @@ import GameScene from './scenes/GameScene.js'
 
 const gameConfig = {
     type: Phaser.AUTO,
-    width: 1280,  // adjust as needed
+    width: 1480,  // adjust as needed
     height: 960, // adjust as needed
     backgroundColor: '#E3E3E3',
     scene: [BootScene, MainMenuScene, GameScene]

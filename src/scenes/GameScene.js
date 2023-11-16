@@ -17,19 +17,35 @@ export default class GameScene extends Phaser.Scene {
 		this.add.image(640, 480, 'map');
 		this.add.image(640, 480, 'grid');
 
+		this.currentLevel = 1;
+
 		// Initialize an empty grid
 		this.gridSize = 32;
 		this.mapGrid = Array(40).fill(null).map(() => Array(30).fill(0)); 
 
+		// Create a 'start level' button
+		this.startButton = this.add.text(1300, 20, 'Start Level', 
+			{font: '16px Arial', fill: '#000000'});
+		this.startButton.setInteractive();
+		this.startButton.on('pointerdown', () => {
+			this.startLevel(this.currentLevel);
+		});
+ 
 		// Mouse event listener
 		this.input.on('pointerdown', (pointer) => {
 			this.mouseDown(pointer.x, pointer.y);
 		});
 
-		this.currentLevel = 1;
+		this.gemTiers = ['Primitive', 'Fiery', 'Infernal', 'Hellforged', 'Demonic', 'Abyssal', 'Diabolical'];
 
 		// Initialize gem chances
-		this.gemChances = [0.4, 0.4, 0.4, 0, 0, 0, 0];
+		this.gemChances = [0.4, 0.4, 0.2, 0, 0, 0, 0];
+		// Show gem chances in the UI panel
+		this.add.text(1300, 50, 'Gem Chances:', { font: '18px Arial', fill: '#000000'});
+		this.gemChances.forEach((chance, index) => {
+			this.add.text(1300, 75 + (index * 20), `${this.gemTiers[index]}: ${chance*100}%`, 
+				{ font: '16px Arial', fill: '#000000' });
+		});
 
 		// Create an instance of the A* pathfinding algorithm and add the spawn point and checkpoints
 		this.astar = new AStar(this.mapGrid);
@@ -54,13 +70,18 @@ export default class GameScene extends Phaser.Scene {
 		// Load level data
 		// Clear old data if necessary
 		// Display stone placement UI
+		this.isPlacementPhase = true;
+	}
+
+	startLevel(levelIndex) {
+		this.isPlacementPhase = false;
+
 		let levelData = this.levelsData.find(level => level.levelNumber === levelIndex);
 		if (levelData) {
 			// this.loadMap(levelData.map);
 			this.spawnEnemies(levelData.enemies);
 		}
 
-		this.isPlacementPhase = true;
 	}
 
 	update() {
@@ -77,6 +98,9 @@ export default class GameScene extends Phaser.Scene {
 	}
 
 	placeRandomGem (x, y) {
+		if (!this.isPlacementPhase) {
+			return;
+		}
 		let cleanedCoords = this.centerGridCoords(x, y);
 		console.log(`trying to place at ${cleanedCoords[0]/32},${cleanedCoords[1]/32}`);
 		// if the clicked tile is empty
