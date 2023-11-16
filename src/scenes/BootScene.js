@@ -14,10 +14,11 @@ export default class BootScene extends Phaser.Scene {
 	    this.load.image('stone', 'assets/images/stone.png');
 	    this.load.spritesheet('basic_human', 'assets/images/spritesheet_enemy_basic.png',
 	        { frameWidth: 32, frameHeight: 32 });
-	    this.load.spritesheet('gems', 'assets/images/spritesheet_gems',
+	    this.load.spritesheet('gems', 'assets/images/spritesheet_gems.png',
 	        { frameWidth: 32, frameHeight: 32 });
-
-
+	    
+	    // Load the levels.json file
+	    this.load.json('levels', 'src/levels.json');
 	}
 
 	create () {
