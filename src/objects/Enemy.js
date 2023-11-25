@@ -1,5 +1,5 @@
 export default class Enemy extends Phaser.GameObjects.Sprite {
-	constructor(scene, x, y, type = 'basic_human') {
+	constructor(scene, x, y, checkpoints, type = 'basic_human', lifeScore = 1) {
         super(scene, x, y, type);
 
         this.scene = scene;
@@ -7,6 +7,13 @@ export default class Enemy extends Phaser.GameObjects.Sprite {
         scene.add.existing(this);
         // Set the origin to the center
         this.setOrigin(0, 0);
+
+        this.checkpoints = checkpoints;
+        this.finalX = this.checkpoints[this.checkpoints.length - 1].x
+        this.finalY = this.checkpoints[this.checkpoints.length - 1].y
+
+        console.log(`Enemy created with final destination ${this.finalX}, ${this.finalY}`);
+        this.lifeScore = lifeScore;
 
         // Initialize the current node based on given pixel coordinates
         this.currentNode = { x: Math.floor(x / 32), y: Math.floor(y / 32) };
@@ -26,16 +33,8 @@ export default class Enemy extends Phaser.GameObjects.Sprite {
 
 	    let testDistance = Phaser.Math.Distance.Between(320, 192, 320, 480);
 
-	    /* console.log(`Test distance is ${testDistance}`);
-	    console.log(`Enemy coords are ${this.x}, ${this.y}`);
-	    console.log(`Target node coords are ${nextNode.x}, ${nextNode.y}`);
-	    console.log(`Scene grid size is ${this.scene.gridSize}`);*/
-
 	    let distance = Phaser.Math.Distance.Between(this.x, this.y, nextNode.x * this.scene.gridSize, nextNode.y * this.scene.gridSize);
 	    let duration = (distance / speed) * 1000;
-
-	    /* console.log(`Distance is ${distance}`);
-	    console.log(`Duration is ${duration}`); */
 
 	    // Determine the direction
 		let xDirection = nextNode.x*32 - this.x;
@@ -69,6 +68,11 @@ export default class Enemy extends Phaser.GameObjects.Sprite {
 	        ease: 'Linear',
 	        onComplete: () => {
 	            console.log(`Reached node (${nextNode.x}, ${nextNode.y})`);
+	            if ((this.x/32 == this.finalX) && (this.y/32 == this.finalY)) {
+	            	console.log("Enemy reached destination. Deducting life and destroying.");
+	            	this.scene.deductLife(this.lifeScore);
+	            	// this.destroy();
+	            }
 	            // Once the first move is done, remove the node from the path
 	            if (path[0] === nextNode) { // Confirm that we've reached the correct node before shifting
 	                path.shift(); // Remove the node we've just reached
@@ -79,7 +83,6 @@ export default class Enemy extends Phaser.GameObjects.Sprite {
 	            if (path.length === 0) {
 	                // If there are no more nodes in the path, call onCompleteCallback
 	                if (onCompleteCallback) {
-	                	console.log("Calling back");
 	                	onCompleteCallback();
 	                }
 	            } else {

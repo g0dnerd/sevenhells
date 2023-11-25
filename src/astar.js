@@ -37,8 +37,11 @@ export default class AStar {
                     heuristic: null,  // Estimated cost from this node to the end
                     previous: null,  // The previous node in the path
                     visited: false,  // Has this node been visited yet?
-                    wall: false  // Is this node a wall?
+                    wall: grid[x][y] == 1  // Is this node a wall?
                 };
+                if (node.wall) {
+                    console.log(`Node at ${node.x},${node.y} is a wall`);
+                }
 				// console.log(`created new node at ${x}, ${y}`);
                 rowNodes.push(node);
             }

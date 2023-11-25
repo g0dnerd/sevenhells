@@ -21,7 +21,7 @@ export default class GameScene extends Phaser.Scene {
 
 		// Initialize an empty grid
 		this.gridSize = 32;
-		this.mapGrid = Array(40).fill(null).map(() => Array(30).fill(0)); 
+		this.mapGrid = Array(40).fill(0).map(() => Array(30).fill(0)); 
 
 		// Create a 'start level' button
 		this.startButton = this.add.text(1300, 20, 'Start Level', 
@@ -39,13 +39,27 @@ export default class GameScene extends Phaser.Scene {
 		this.gemTiers = ['Primitive', 'Fiery', 'Infernal', 'Hellforged', 'Demonic', 'Abyssal', 'Diabolical'];
 
 		// Initialize gem chances
-		this.gemChances = [0.4, 0.4, 0.2, 0, 0, 0, 0];
+		this.gemChances = [0.8, 0.15, 0.05, 0, 0, 0, 0];
 		// Show gem chances in the UI panel
-		this.add.text(1300, 50, 'Gem Chances:', { font: '18px Arial', fill: '#000000'});
+		this.add.text(1300, 50, 'Gem Chances:',
+			{ font: '18px Arial', fill: '#000000'});
 		this.gemChances.forEach((chance, index) => {
-			this.add.text(1300, 75 + (index * 20), `${this.gemTiers[index]}: ${chance*100}%`, 
+			this.add.text(1300, 75 + (index * 20),
+				`${this.gemTiers[index]}: ${chance*100}%`, 
 				{ font: '16px Arial', fill: '#000000' });
 		});
+
+
+		this.levelsData = this.cache.json.get('levels');
+		this.placementsPerPhase = 0;
+		this.remainingPlacements = 0;
+		this.lives = 0;
+
+		this.setupLevel(this.currentLevel);
+
+		// Initialize lives
+		this.livesText = this.add.text(1300, 250, 'Lives: 0',
+			{ font: '18px Arial', fill: '#000000' });
 
 		// Create an instance of the A* pathfinding algorithm and add the spawn point and checkpoints
 		this.astar = new AStar(this.mapGrid);
@@ -60,16 +74,30 @@ export default class GameScene extends Phaser.Scene {
 			this.astar.nodes[20][22],
 			this.astar.nodes[39][22]
 		];
-
-		this.levelsData = this.cache.json.get('levels');
-
-		this.setupLevel(this.currentLevel);
 	}
 
 	setupLevel(levelIndex) {
-		// Load level data
-		// Clear old data if necessary
-		// Display stone placement UI
+
+		let levelData = this.levelsData.find(level => level.levelNumber === levelIndex);
+
+		if (levelData) {
+			// Mark visual checkpoints as blocked squares in the map grid
+			// so that player can't place on checkpoints
+			levelData.checkpoints_visual.forEach(checkpoint => {
+				this.mapGrid[checkpoint.x][checkpoint.y] = 'c';
+			});
+		}
+
+		// Update the amount of allowed gem placements
+		this.placementsPerPhase = levelData.placements_per_phase;
+		this.remainingPlacements = this.placementsPerPhase;
+
+		// Update amount of lives
+		this.lives = levelData.lives;
+		// livesText.setText(`Lives: ${this.lives}`);
+
+		// Enable placement phase once done
+
 		this.isPlacementPhase = true;
 	}
 
@@ -105,22 +133,36 @@ export default class GameScene extends Phaser.Scene {
 		console.log(`trying to place at ${cleanedCoords[0]/32},${cleanedCoords[1]/32}`);
 		// if the clicked tile is empty
 
-		if (this.mapGrid[cleanedCoords[0]/32][cleanedCoords[1]/32] == 0) {
-			// Randomize rarity based on current chances
-			let rarity = this.getRandomRarity(this.gemChances);
+		if (this.remainingPlacements > 0) {
+			if (this.mapGrid[cleanedCoords[0]/32][cleanedCoords[1]/32] == 0) {
+				// Randomize rarity based on current chances
+				let rarity = this.getRandomRarity(this.gemChances);
 
-			// Randomize gem color indepently of rarity
-			let colorIndex = Math.floor(Math.random() * 7);
+				// Randomize gem color indepently of rarity
+				let colorIndex = Math.floor(Math.random() * 7);
 
-			// Create a new gem
-			let gem = new Gem(this, cleanedCoords[0], cleanedCoords[1], rarity, colorIndex);
+				// Create a new gem
+				let gem = new Gem(this, cleanedCoords[0], cleanedCoords[1], rarity, colorIndex);
 
-			// Mark the grid node as occupied
-			this.mapGrid[cleanedCoords[0]/32][cleanedCoords[1]/32] = "1";
+				// Mark the grid node as occupied
+				this.mapGrid[cleanedCoords[0]/32][cleanedCoords[1]/32] = "1";
+				this.astar.nodes[cleanedCoords[0]/32][cleanedCoords[1]/32].wall = true;
+
+				// Update remaining placements
+				this.remainingPlacements--;			}
+			else {
+				if (this.mapGrid[cleanedCoords[0]/32][cleanedCoords[1]/32] == 'c') {
+					console.log("tile is a checkpoint.");
+				}
+				else {
+					console.log("tile already full");	
+				}
+			}
 		}
 		else {
-			console.log("tile already full");
+			console.log("maximum placements reached");
 		}
+
 	}
 
 	getRandomRarity(chances) {
@@ -216,10 +258,15 @@ export default class GameScene extends Phaser.Scene {
 
 	spawnEnemy (type, x, y) {
 		console.log(`Spawning enemy of type ${type} at (${x},${y})`);
-		let enemy = new Enemy(this, x*32, y*32);
+		let enemy = new Enemy(this, x*32, y*32, this.checkpointsList);
 
 		let checkpoints = this.checkpointsList.slice();
 
 		this.sendOnPath(enemy, this.astar, checkpoints);
+	}
+
+	deductLife (amount) {
+		this.lives = this.lives - amount;
+		// this.livesText.setText(`Lives: ${this.lives}`);
 	}
 }
