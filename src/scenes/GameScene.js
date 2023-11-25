@@ -30,6 +30,10 @@ export default class GameScene extends Phaser.Scene {
 		this.startButton.on('pointerdown', () => {
 			this.startLevel(this.currentLevel);
 		});
+
+		// Initialize empty turrets and enemies lists
+		this.turrets = [];
+		this.enemies = [];
  
 		// Mouse event listener
 		this.input.on('pointerdown', (pointer) => {
@@ -55,11 +59,12 @@ export default class GameScene extends Phaser.Scene {
 		this.remainingPlacements = 0;
 		this.lives = 0;
 
+		// Initialize lives
+		this.hpText = this.add.text(1300, 250, 'Lives: 0',
+			{ font: '18px Arial', fill: '#000000' });
+
 		this.setupLevel(this.currentLevel);
 
-		// Initialize lives
-		this.livesText = this.add.text(1300, 250, 'Lives: 0',
-			{ font: '18px Arial', fill: '#000000' });
 
 		// Create an instance of the A* pathfinding algorithm and add the spawn point and checkpoints
 		this.astar = new AStar(this.mapGrid);
@@ -94,7 +99,7 @@ export default class GameScene extends Phaser.Scene {
 
 		// Update amount of lives
 		this.lives = levelData.lives;
-		// livesText.setText(`Lives: ${this.lives}`);
+		this.hpText.setText(`Lives: ${this.lives}`);
 
 		// Enable placement phase once done
 
@@ -109,6 +114,10 @@ export default class GameScene extends Phaser.Scene {
 			// this.loadMap(levelData.map);
 			this.spawnEnemies(levelData.enemies);
 		}
+
+		this.turrets.forEach((gem) => {
+			this.startTurretShooting(gem);
+		});
 
 	}
 
@@ -143,6 +152,7 @@ export default class GameScene extends Phaser.Scene {
 
 				// Create a new gem
 				let gem = new Gem(this, cleanedCoords[0], cleanedCoords[1], rarity, colorIndex);
+				this.turrets.push(gem);
 
 				// Mark the grid node as occupied
 				this.mapGrid[cleanedCoords[0]/32][cleanedCoords[1]/32] = "1";
@@ -259,6 +269,7 @@ export default class GameScene extends Phaser.Scene {
 	spawnEnemy (type, x, y) {
 		console.log(`Spawning enemy of type ${type} at (${x},${y})`);
 		let enemy = new Enemy(this, x*32, y*32, this.checkpointsList);
+		this.enemies.push(enemy);
 
 		let checkpoints = this.checkpointsList.slice();
 
@@ -267,6 +278,37 @@ export default class GameScene extends Phaser.Scene {
 
 	deductLife (amount) {
 		this.lives = this.lives - amount;
-		// this.livesText.setText(`Lives: ${this.lives}`);
+		this.hpText.setText(`Lives: ${this.lives}`);
+	}
+
+	startTurretShooting(turret) {
+		this.time.addEvent({
+			delay: 500,
+			loop: true,
+			callback: () => {
+				const enemiesInTurretRange = this.getEnemiesInTurretRange(turret);
+
+				if (enemiesInTurretRange.length > 0) {
+					// Find the closest and furthest enemies
+					const closestEnemy = this.physics.Closest(turret, enemiesInTurretRange);
+					const furthestEnemy = this.physics.Furthest(turret, enemiesInTurretRange);
+
+					turret.shoot(closestEnemy);
+
+					/* this.events.once('enemyLeftRange', (leftEnemy) => {
+						if (leftEnemy === closestEnemy) {
+							tower.shoot(furthestEnemy);
+						}
+					}); */
+				} else {
+					turret.stopShooting();
+				}
+			}
+		})
+	}
+
+	getEnemiesInTurretRange(turret) {
+		return this.enemies.filter((enemy) => 
+			Phaser.Math.Distance.Between(turret.x, turret.y, enemy.x, enemy.y) <= turret.range);
 	}
 }

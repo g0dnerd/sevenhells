@@ -1,5 +1,5 @@
 export default class Enemy extends Phaser.GameObjects.Sprite {
-	constructor(scene, x, y, checkpoints, type = 'basic_human', lifeScore = 1) {
+	constructor(scene, x, y, checkpoints, type = 'basic_human', lifeCost = 1) {
         super(scene, x, y, type);
 
         this.scene = scene;
@@ -12,8 +12,7 @@ export default class Enemy extends Phaser.GameObjects.Sprite {
         this.finalX = this.checkpoints[this.checkpoints.length - 1].x
         this.finalY = this.checkpoints[this.checkpoints.length - 1].y
 
-        console.log(`Enemy created with final destination ${this.finalX}, ${this.finalY}`);
-        this.lifeScore = lifeScore;
+        this.lifeCost = lifeCost;
 
         // Initialize the current node based on given pixel coordinates
         this.currentNode = { x: Math.floor(x / 32), y: Math.floor(y / 32) };
@@ -70,7 +69,7 @@ export default class Enemy extends Phaser.GameObjects.Sprite {
 	            console.log(`Reached node (${nextNode.x}, ${nextNode.y})`);
 	            if ((this.x/32 == this.finalX) && (this.y/32 == this.finalY)) {
 	            	console.log("Enemy reached destination. Deducting life and destroying.");
-	            	this.scene.deductLife(this.lifeScore);
+	            	this.scene.deductLife(this.lifeCost);
 	            	// this.destroy();
 	            }
 	            // Once the first move is done, remove the node from the path
