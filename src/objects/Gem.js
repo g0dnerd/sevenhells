@@ -1,3 +1,5 @@
+import Projectile from './Projectile.js';
+
 export default class Gem extends Phaser.GameObjects.Sprite {
 	constructor(scene, x, y, rarity, colorIndex) {
 		// Calculate spritesheet frame
@@ -9,8 +11,11 @@ export default class Gem extends Phaser.GameObjects.Sprite {
 		this.rarity = rarity;
 		this.color = Gem.colors[colorIndex];
 
+		this.nextShotTime = -1;
+
 		this.range = Gem.calculateRange(rarity, colorIndex);
 		this.damage = Gem.calculateRange(rarity, colorIndex);
+		this.attackSpeed = Gem.calculateRange(rarity, colorIndex);
 
 		scene.add.existing(this);
 
@@ -79,6 +84,33 @@ export default class Gem extends Phaser.GameObjects.Sprite {
 			case 6:
 				// Red gem
 				return 80+10*(rarity+1);
+		}
+	}
+
+	static calculateAttackSpeed(rarity, colorIndex) {
+		// Returns attack speed in form of a ms delay between attacks
+		switch(colorIndex) {
+			case 0:
+				// White gem
+				return 300+10*(rarity+1);
+			case 1:
+				// Yellow gem
+				return 200+10*(rarity+1);
+			case 2:
+				// Green gem
+				return 300+10*(rarity+1);
+			case 3:
+				// Blue gem
+				return 300+10*(rarity+1);
+			case 4:
+				// Pink gem
+				return 250+10*(rarity+1);
+			case 5:
+				// Cyan gem
+				return 250+10*(rarity+1);
+			case 6:
+				// Red gem
+				return 300+10*(rarity+1);
 		}
 	}
 }

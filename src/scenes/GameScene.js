@@ -32,7 +32,7 @@ export default class GameScene extends Phaser.Scene {
 		});
 
 		// Initialize empty turrets and enemies lists
-		this.turrets = [];
+		this.gems = [];
 		this.enemies = [];
  
 		// Mouse event listener
@@ -115,15 +115,21 @@ export default class GameScene extends Phaser.Scene {
 			this.spawnEnemies(levelData.enemies);
 		}
 
-		this.turrets.forEach((gem) => {
-			this.startTurretShooting(gem);
-		});
-
 	}
 
 	update() {
 		if (!this.isPlacementPhase) {
 			// Game logic
+			this.gems.forEach(gem => {
+				const enemiesInRange = this.getEnemiesInTurretRange(gem);
+
+				if (enemiesInRange.length > 0) {
+					const targetEnemy = enemiesInRange[0];
+					gem.shoot(targetEnemy);
+				} else {
+					gem.stopShooting();
+				}
+			});
 		}
 
 	}
@@ -152,7 +158,7 @@ export default class GameScene extends Phaser.Scene {
 
 				// Create a new gem
 				let gem = new Gem(this, cleanedCoords[0], cleanedCoords[1], rarity, colorIndex);
-				this.turrets.push(gem);
+				this.gems.push(gem);
 
 				// Mark the grid node as occupied
 				this.mapGrid[cleanedCoords[0]/32][cleanedCoords[1]/32] = "1";
@@ -279,32 +285,6 @@ export default class GameScene extends Phaser.Scene {
 	deductLife (amount) {
 		this.lives = this.lives - amount;
 		this.hpText.setText(`Lives: ${this.lives}`);
-	}
-
-	startTurretShooting(turret) {
-		this.time.addEvent({
-			delay: 500,
-			loop: true,
-			callback: () => {
-				const enemiesInTurretRange = this.getEnemiesInTurretRange(turret);
-
-				if (enemiesInTurretRange.length > 0) {
-					// Find the closest and furthest enemies
-					const closestEnemy = this.physics.Closest(turret, enemiesInTurretRange);
-					const furthestEnemy = this.physics.Furthest(turret, enemiesInTurretRange);
-
-					turret.shoot(closestEnemy);
-
-					/* this.events.once('enemyLeftRange', (leftEnemy) => {
-						if (leftEnemy === closestEnemy) {
-							tower.shoot(furthestEnemy);
-						}
-					}); */
-				} else {
-					turret.stopShooting();
-				}
-			}
-		})
 	}
 
 	getEnemiesInTurretRange(turret) {
