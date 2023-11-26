@@ -2,6 +2,8 @@ export default class Enemy extends Phaser.GameObjects.Sprite {
 	constructor(scene, x, y, checkpoints, id = 0, lifeCost = 1) {
         super(scene, x, y, Enemy.type[id]);
 
+        this.isHandledForDeath = false;
+
         this.scene = scene;
 
         scene.add.existing(this);
@@ -121,6 +123,10 @@ export default class Enemy extends Phaser.GameObjects.Sprite {
 				// Consultant
 				return 20;
 		}
+	}
+
+	markAsDead() {
+		this.isDead = true;
 	}
 	
 }

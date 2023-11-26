@@ -11,6 +11,8 @@ export default class Gem extends Phaser.GameObjects.Sprite {
 		this.rarity = rarity;
 		this.color = Gem.colors[colorIndex];
 
+		this.target = null;
+
 		this.nextShotTime = -1;
 		this.shotsFired = 0;
 
@@ -24,14 +26,26 @@ export default class Gem extends Phaser.GameObjects.Sprite {
 		this.setOrigin(0, 0);
 	}
 
-	shoot (target) {
-		const projectile = new Projectile(this.scene, this.x, this.y, target, this.damage);
+	shoot() {
+		if (!this.target || this.target.isHandledForDeath) {
+			this.target = null;
+			return;
+		}
+
+		console.log(`Trying to shoot a target at ${this.target.x},${this.target.y}`);
+
+		const projectile = new Projectile(this.scene, this.x, this.y, this.target, this.damage);
 		this.scene.projectiles.push(projectile);
 		// this.shotsFired++;
 		// console.log(`${this.shotsFired} shots fired at ${this.scene.time.now}.`);
 	}
 
+	clearTarget() {
+		this.target = null;
+	}
+
 	stopShooting() {
+		this.clearTarget();
 		// console.log("Stopped shooting.");
 	}
 

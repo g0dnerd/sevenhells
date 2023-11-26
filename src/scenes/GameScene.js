@@ -129,18 +129,14 @@ export default class GameScene extends Phaser.Scene {
 			const currentTime = this.time.now;
 
 			this.gems.forEach(gem => {
+				const targetEnemy = this.findNextTarget(gem);
+				gem.target = targetEnemy;
 				if (gem.nextShotTime <= currentTime) {
-					const enemiesInRange = this.getEnemiesInTurretRange(gem);
-
-					if (enemiesInRange.length > 0) {
-						const targetEnemy = enemiesInRange[0];
-						gem.shoot(targetEnemy);
-
-						gem.nextShotTime = currentTime + gem.attackSpeed;
-						// console.log(`Next shot to be fired at ${gem.nextShotTime}`);
-					} else {
-						gem.stopShooting();
-					}
+					gem.shoot(targetEnemy);
+					gem.nextShotTime = currentTime + gem.attackSpeed;
+					// console.log(`Next shot to be fired at ${gem.nextShotTime}`);
+				} else {
+					gem.stopShooting();
 				}
 			});
 
@@ -308,15 +304,25 @@ export default class GameScene extends Phaser.Scene {
 			Phaser.Math.Distance.Between(turret.x, turret.y, enemy.x, enemy.y) <= turret.range);
 	}
 
+	findNextTarget(gem) {
+		const enemiesInRange = this.getEnemiesInTurretRange(gem);
+		if (enemiesInRange.length > 0) {
+			return enemiesInRange[0];
+		}
+
+		return;
+	}
+
 	checkProjectileHits() {
 	    this.projectiles.forEach(projectile => {
 	        this.enemies.forEach(enemy => {
-	            if (Phaser.Geom.Intersects.RectangleToRectangle(projectile.getBounds(), enemy.getBounds())) {
+	            if (!enemy.isDead && Phaser.Geom.Intersects.RectangleToRectangle(projectile.getBounds(), enemy.getBounds())) {
 	                enemy.health -= projectile.damage;
 	                projectile.destroy(); // Destroy the projectile after it hits
 
 	                // Check if the enemy is dead
 	                if (enemy.health <= 0) {
+	                	enemy.markAsDead();
 	                    this.handleEnemyDeath(enemy);
 	                }
 	            }
@@ -328,5 +334,12 @@ export default class GameScene extends Phaser.Scene {
 		this.gold += enemy.goldValue;
 		this.goldText.setText(`Embers: ${this.gold}`);
 		enemy.destroy();
+
+		// Clears the target for all gems targeting it
+		this.gems.forEach(gem => {
+			if (gem.target === enemy) {
+				gem.clearTarget();
+			}
+		});
 	}
 }
