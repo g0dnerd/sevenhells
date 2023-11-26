@@ -1,6 +1,6 @@
 export default class Enemy extends Phaser.GameObjects.Sprite {
-	constructor(scene, x, y, checkpoints, type = 'basic_human', lifeCost = 1) {
-        super(scene, x, y, type);
+	constructor(scene, x, y, checkpoints, id = 0, lifeCost = 1) {
+        super(scene, x, y, Enemy.type[id]);
 
         this.scene = scene;
 
@@ -13,6 +13,8 @@ export default class Enemy extends Phaser.GameObjects.Sprite {
         this.finalY = this.checkpoints[this.checkpoints.length - 1].y
 
         this.lifeCost = lifeCost;
+        this.health = Enemy.calculateHealthByID(id);
+        this.goldValue = Enemy.calculateGoldValueByID(id);
 
         // Initialize the current node based on given pixel coordinates
         this.currentNode = { x: Math.floor(x / 32), y: Math.floor(y / 32) };
@@ -29,8 +31,6 @@ export default class Enemy extends Phaser.GameObjects.Sprite {
 
 	    // Extract the first node from the path to avoid altering the original path array
 	    let nextNode = path[0];
-
-	    let testDistance = Phaser.Math.Distance.Between(320, 192, 320, 480);
 
 	    let distance = Phaser.Math.Distance.Between(this.x, this.y, nextNode.x * this.scene.gridSize, nextNode.y * this.scene.gridSize);
 	    let duration = (distance / speed) * 1000;
@@ -66,7 +66,12 @@ export default class Enemy extends Phaser.GameObjects.Sprite {
 	        duration: speed,
 	        ease: 'Linear',
 	        onComplete: () => {
-	            console.log(`Reached node (${nextNode.x}, ${nextNode.y})`);
+	        	// Check if the object still exists
+	        	if (!this.scene) {
+	        		return;
+	        	}
+
+	            // console.log(`Reached node (${nextNode.x}, ${nextNode.y})`);
 	            if ((this.x/32 == this.finalX) && (this.y/32 == this.finalY)) {
 	            	console.log("Enemy reached destination. Deducting life and destroying.");
 	            	this.scene.deductLife(this.lifeCost);
@@ -92,8 +97,30 @@ export default class Enemy extends Phaser.GameObjects.Sprite {
 	    });
 	}
 
-	kill() {
-		
+	static get type() {
+		return ['basic_human', 'consultant'];
+	}
+
+	static calculateHealthByID(id) {
+		switch(id) {
+			case 0:
+				// Basic human
+				return 40;
+			case 1:
+				// Consultant
+				return 80;
+		}
+	}
+
+	static calculateGoldValueByID(id) {
+		switch (id) {
+			case 0:
+				// Basic human
+				return 10;
+			case 1:
+				// Consultant
+				return 20;
+		}
 	}
 	
 }

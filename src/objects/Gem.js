@@ -12,10 +12,11 @@ export default class Gem extends Phaser.GameObjects.Sprite {
 		this.color = Gem.colors[colorIndex];
 
 		this.nextShotTime = -1;
+		this.shotsFired = 0;
 
 		this.range = Gem.calculateRange(rarity, colorIndex);
 		this.damage = Gem.calculateRange(rarity, colorIndex);
-		this.attackSpeed = Gem.calculateRange(rarity, colorIndex);
+		this.attackSpeed = Gem.calculateAttackSpeed(rarity, colorIndex);
 
 		scene.add.existing(this);
 
@@ -24,11 +25,14 @@ export default class Gem extends Phaser.GameObjects.Sprite {
 	}
 
 	shoot (target) {
-		const projectile = new Projectile(this.scene, this.x, this.y, target);
+		const projectile = new Projectile(this.scene, this.x, this.y, target, this.damage);
+		this.scene.projectiles.push(projectile);
+		// this.shotsFired++;
+		// console.log(`${this.shotsFired} shots fired at ${this.scene.time.now}.`);
 	}
 
 	stopShooting() {
-		console.log("Stopped shooting.");
+		// console.log("Stopped shooting.");
 	}
 
 	static get colors() {
@@ -92,25 +96,25 @@ export default class Gem extends Phaser.GameObjects.Sprite {
 		switch(colorIndex) {
 			case 0:
 				// White gem
-				return 300+10*(rarity+1);
+				return 1000-50*(rarity+1);
 			case 1:
 				// Yellow gem
-				return 200+10*(rarity+1);
+				return 800-50*(rarity+1);
 			case 2:
 				// Green gem
-				return 300+10*(rarity+1);
+				return 1000-50*(rarity+1);
 			case 3:
 				// Blue gem
-				return 300+10*(rarity+1);
+				return 1000-50*(rarity+1);
 			case 4:
 				// Pink gem
-				return 250+10*(rarity+1);
+				return 900-50*(rarity+1);
 			case 5:
 				// Cyan gem
-				return 250+10*(rarity+1);
+				return 900-50*(rarity+1);
 			case 6:
 				// Red gem
-				return 300+10*(rarity+1);
+				return 1000-50*(rarity+1);
 		}
 	}
 }

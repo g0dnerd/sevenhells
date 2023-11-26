@@ -1,8 +1,9 @@
 export default class Projectile extends Phaser.GameObjects.Sprite {
-	constructor(scene, x, y, target) {
+	constructor(scene, x, y, target, damage) {
 		super(scene, x, y, 'projectile');
 
 		this.scene = scene;
+		this.damage = damage;
 		scene.add.existing(this);
 
 		// Set the origin to the center

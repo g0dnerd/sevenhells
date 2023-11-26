@@ -31,9 +31,10 @@ export default class GameScene extends Phaser.Scene {
 			this.startLevel(this.currentLevel);
 		});
 
-		// Initialize empty turrets and enemies lists
+		// Initialize game object arrays
 		this.gems = [];
 		this.enemies = [];
+		this.projectiles = [];
  
 		// Mouse event listener
 		this.input.on('pointerdown', (pointer) => {
@@ -58,9 +59,14 @@ export default class GameScene extends Phaser.Scene {
 		this.placementsPerPhase = 0;
 		this.remainingPlacements = 0;
 		this.lives = 0;
+		this.gold = 0;
 
 		// Initialize lives
 		this.hpText = this.add.text(1300, 250, 'Lives: 0',
+			{ font: '18px Arial', fill: '#000000' });
+
+		// Initialize embers
+		this.goldText = this.add.text(1300, 300, 'Embers: 0',
 			{ font: '18px Arial', fill: '#000000' });
 
 		this.setupLevel(this.currentLevel);
@@ -120,16 +126,25 @@ export default class GameScene extends Phaser.Scene {
 	update() {
 		if (!this.isPlacementPhase) {
 			// Game logic
-			this.gems.forEach(gem => {
-				const enemiesInRange = this.getEnemiesInTurretRange(gem);
+			const currentTime = this.time.now;
 
-				if (enemiesInRange.length > 0) {
-					const targetEnemy = enemiesInRange[0];
-					gem.shoot(targetEnemy);
-				} else {
-					gem.stopShooting();
+			this.gems.forEach(gem => {
+				if (gem.nextShotTime <= currentTime) {
+					const enemiesInRange = this.getEnemiesInTurretRange(gem);
+
+					if (enemiesInRange.length > 0) {
+						const targetEnemy = enemiesInRange[0];
+						gem.shoot(targetEnemy);
+
+						gem.nextShotTime = currentTime + gem.attackSpeed;
+						// console.log(`Next shot to be fired at ${gem.nextShotTime}`);
+					} else {
+						gem.stopShooting();
+					}
 				}
 			});
+
+			this.checkProjectileHits();
 		}
 
 	}
@@ -158,6 +173,7 @@ export default class GameScene extends Phaser.Scene {
 
 				// Create a new gem
 				let gem = new Gem(this, cleanedCoords[0], cleanedCoords[1], rarity, colorIndex);
+				console.log(`Placed ${this.gemTiers[gem.rarity].toLowerCase()} ${gem.color} gem with range ${gem.range}, dmg ${gem.damage} and AS delay ${gem.attackSpeed}`);
 				this.gems.push(gem);
 
 				// Mark the grid node as occupied
@@ -211,7 +227,7 @@ export default class GameScene extends Phaser.Scene {
 	}
 
 	sendOnPath (enemy, astar, checkpoints) {
-		console.log('Current checkpoints list:', checkpoints.map(cp => `(${cp.x},${cp.y})`).join(', '));
+		// console.log('Current checkpoints list:', checkpoints.map(cp => `(${cp.x},${cp.y})`).join(', '));
 		// check if there are no checkpoints left to process
 		if (checkpoints.length === 0) {
 			console.log('All checkpoints reached.');
@@ -221,12 +237,12 @@ export default class GameScene extends Phaser.Scene {
 
 		// Get the next checkpoint to move to
 		const nextCheckpoint = checkpoints[0];
-		console.log('Moving to next checkpoint:', nextCheckpoint);
-		console.log(`Enemy current node: x:${enemy.currentNode.x}, y:${enemy.currentNode.y}`);
+		// console.log('Moving to next checkpoint:', nextCheckpoint);
+		// console.log(`Enemy current node: x:${enemy.currentNode.x}, y:${enemy.currentNode.y}`);
 
 		// Find the path to the next checkpoint
 		const path = astar.findPath(enemy.currentNode, nextCheckpoint);
-		console.log('Generated path to next checkpoint:', path.map(node => `(${node.x},${node.y})`).join(', '));
+		// console.log('Generated path to next checkpoint:', path.map(node => `(${node.x},${node.y})`).join(', '));
 
 		// If a path is found, move the enemy along it 
 		if (path && path.length > 0) {
@@ -246,14 +262,14 @@ export default class GameScene extends Phaser.Scene {
 	spawnEnemies (enemies, currentIndex = 0, enemyCount = 0) {
 		if (currentIndex >= enemies.length) {
 			// Stop if there are no more enemies to spawn
-			console.log(`No more enemies to spawn.`);
+			// console.log(`No more enemies to spawn.`);
 			return;
 		}
 
 		// Get the current enemy's data
 		const enemyData = enemies[currentIndex];
 
-		console.log(`spawnEnemies called, ${enemyData.amount} to spawn.`);
+		// console.log(`spawnEnemies called, ${enemyData.amount} to spawn.`);
 
 	    if (enemyCount < enemyData.amount) {
 	        // Spawn one enemy and increase the count
@@ -273,7 +289,7 @@ export default class GameScene extends Phaser.Scene {
 	}
 
 	spawnEnemy (type, x, y) {
-		console.log(`Spawning enemy of type ${type} at (${x},${y})`);
+		// console.log(`Spawning enemy of type ${type} at (${x},${y})`);
 		let enemy = new Enemy(this, x*32, y*32, this.checkpointsList);
 		this.enemies.push(enemy);
 
@@ -290,5 +306,27 @@ export default class GameScene extends Phaser.Scene {
 	getEnemiesInTurretRange(turret) {
 		return this.enemies.filter((enemy) => 
 			Phaser.Math.Distance.Between(turret.x, turret.y, enemy.x, enemy.y) <= turret.range);
+	}
+
+	checkProjectileHits() {
+	    this.projectiles.forEach(projectile => {
+	        this.enemies.forEach(enemy => {
+	            if (Phaser.Geom.Intersects.RectangleToRectangle(projectile.getBounds(), enemy.getBounds())) {
+	                enemy.health -= projectile.damage;
+	                projectile.destroy(); // Destroy the projectile after it hits
+
+	                // Check if the enemy is dead
+	                if (enemy.health <= 0) {
+	                    this.handleEnemyDeath(enemy);
+	                }
+	            }
+	        });
+	    });
+	}
+
+	handleEnemyDeath(enemy) {
+		this.gold += enemy.goldValue;
+		this.goldText.setText(`Embers: ${this.gold}`);
+		enemy.destroy();
 	}
 }
