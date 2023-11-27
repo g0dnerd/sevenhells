@@ -26,6 +26,12 @@ export default class Gem extends Phaser.GameObjects.Sprite {
 
 		// Set the origin to the center
 		this.setOrigin(0, 0);
+
+		// Use phaser's interactive functionality to make things clickable
+		this.setInteractive();
+		this.on('pointerdown', function (pointer) {
+			scene.handleGemClick(this);
+		});
 	}
 
 	shoot() {

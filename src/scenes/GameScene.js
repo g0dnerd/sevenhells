@@ -8,8 +8,8 @@ export default class GameScene extends Phaser.Scene {
 		super({key: 'GameScene' });
 		this.mapgrid = [];
 
-		// init game state variable - game starts in a placement phase
-		this.isPlacementPhase = true;
+		// init game state variable - game does not start in a placement phase
+		this.isPlacementPhase = false;
 	}
 
 	create() {
@@ -23,14 +23,6 @@ export default class GameScene extends Phaser.Scene {
 		this.gridSize = 32;
 		this.mapGrid = Array(40).fill(0).map(() => Array(30).fill(0)); 
 
-		// Create a 'start level' button
-		this.startButton = this.add.text(1300, 20, 'Start Level', 
-			{font: '16px Arial', fill: '#000000'});
-		this.startButton.setInteractive();
-		this.startButton.on('pointerdown', () => {
-			this.startLevel(this.currentLevel);
-		});
-
 		this.projectileSprites = this.physics.add.group({
 			classType: Projectile,
 			runChildUpdate: true
@@ -41,26 +33,71 @@ export default class GameScene extends Phaser.Scene {
 			this.mouseDown(pointer.x, pointer.y);
 		});
 
-		this.gemTiers = ['Primitive', 'Fiery', 'Infernal', 'Hellforged', 'Demonic', 'Abyssal', 'Diabolical'];
+		this.gemTiers = 
+		['Primitive', 'Fiery', 'Infernal', 'Hellforged', 'Demonic', 'Abyssal', 'Diabolical'];
 
 		// Initialize gem chances
 		this.gemChances = [0.8, 0.15, 0.05, 0, 0, 0, 0];
-		// Show gem chances in the UI panel
-		this.add.text(1300, 50, 'Gem Chances:',
-			{ font: '18px Arial', fill: '#000000'});
-		this.gemChances.forEach((chance, index) => {
-			this.add.text(1300, 75 + (index * 20),
-				`${this.gemTiers[index]}: ${chance*100}%`, 
-				{ font: '16px Arial', fill: '#000000' });
+
+
+		// TEXT & UI
+
+		// Create a 'start level' button
+		this.startButton = this.add.text(1300, 20, 'Start Level', 
+			{ font: '20px Arial', fill: '#0000FF' });
+		this.startButton.setInteractive();
+		this.startButton.on('pointerdown', () => {
+			this.startLevel(this.currentLevel);
 		});
 
-		// Initialize lives
-		this.hpText = this.add.text(1300, 250, 'Lives: 0',
+		// Create a 'start placement' button
+		this.placementButton = this.add.text(1300, 260, 'Start gem placement',
+			{ font: '18px Arial', fill: '#0000FF' });
+		this.placementButton.setInteractive();
+		this.placementButton.on('pointerdown', () => {
+			this.startPlacementPhase();
+		});
+
+		// Initialize gem chance text
+
+		this.add.text(1300, 50, 'Gem Chances:',
+			{ font: '18px Arial', fill: '#000000'});
+
+		this.gemTier0Text = this.add.text(1300, 75, `${this.gemTiers[0]}: ${this.gemChances[0]*100}%`,
+			{ font: '16px Arial', fill: '#000000' });
+
+		this.gemTier1Text = this.add.text(1300, 100, `${this.gemTiers[1]}: ${this.gemChances[1]*100}%`,
+			{ font: '16px Arial', fill: '#000000' });
+
+		this.gemTier2Text = this.add.text(1300, 125, `${this.gemTiers[2]}: ${this.gemChances[2]*100}%`,
+		{ font: '16px Arial', fill: '#000000' });
+
+		this.gemTier3Text = this.add.text(1300, 150, `${this.gemTiers[3]}: ${this.gemChances[3]*100}%`,
+			{ font: '16px Arial', fill: '#000000' });
+
+		this.gemTier4Text = this.add.text(1300, 175, `${this.gemTiers[4]}: ${this.gemChances[4]*100}%`,
+			{ font: '16px Arial', fill: '#000000' });
+
+		this.gemTier5Text = this.add.text(1300, 200, `${this.gemTiers[5]}: ${this.gemChances[5]*100}%`,
+		{ font: '16px Arial', fill: '#000000' });
+
+		this.gemTier6Text = this.add.text(1300, 225, `${this.gemTiers[6]}: ${this.gemChances[6]*100}%`,
+		{ font: '16px Arial', fill: '#000000' });
+
+		// Initialize HP text
+		this.hpText = this.add.text(1300, 300, 'Lives: 0',
 			{ font: '18px Arial', fill: '#000000' });
 
-		// Initialize embers
-		this.goldText = this.add.text(1300, 300, 'Embers: 0',
+		// Initialize embers text
+		this.goldText = this.add.text(1300, 400, 'Embers: 0',
 			{ font: '18px Arial', fill: '#000000' });
+
+		// Initialize text object for displaying gem information
+		this.gemInfoText = this.add.text(1300, 450, '',
+			{ font: '16px Arial', fill: '#000000' });
+
+		// Create a graphics object for drawing the range indicator
+		this.rangeIndicator = this.add.graphics({ lineStyle: { width: 2, color: 0x00ff00 } });
 
 		this.levelsData = this.cache.json.get('levels');
 
@@ -91,6 +128,10 @@ export default class GameScene extends Phaser.Scene {
 		];
 	}
 
+	startPlacementPhase() {
+		this.isPlacementPhase = true;
+	}
+
 	setupLevel(levelIndex) {
 
 		let levelData = this.levelsData.find(level => level.levelNumber === levelIndex);
@@ -110,10 +151,6 @@ export default class GameScene extends Phaser.Scene {
 		// Update amount of lives
 		this.lives = levelData.lives;
 		this.hpText.setText(`Lives: ${this.lives}`);
-
-		// Enable placement phase once done
-
-		this.isPlacementPhase = true;
 	}
 
 	startLevel(levelIndex) {
@@ -158,6 +195,11 @@ export default class GameScene extends Phaser.Scene {
 						this.handleProjectileHit(projectile, enemy);
 					}
 				})
+			});
+
+			// Update health bar positions
+			this.enemies.forEach(enemy => {
+				enemy.updateHealthBar();
 			});
 
 			// Clean up destroyed projectiles
@@ -355,7 +397,7 @@ export default class GameScene extends Phaser.Scene {
 	handleProjectileHit(projectile, enemy) {
 		// Enemy takes damage
 		enemy.takeDamage(projectile.damage);
-		if (enemy.health <= 0) {
+		if (enemy.currentHealth <= 0) {
 			// Enemy gets handled for death if HP is at or below 0
 			this.handleEnemyDeath(enemy);
 		}
@@ -396,6 +438,17 @@ export default class GameScene extends Phaser.Scene {
 				gem.clearProjectiles();
 			}
 		});
+	}
+
+	handleGemClick(gem) {
+		console.log("Gem clicked.");
+		// Update the gem info text in the reserved UI space
+		const info = `${this.gemTiers[gem.rarity]} ${gem.color}\nDamage: ${gem.damage}\nRange: ${gem.range}\nAttack Speed: ${gem.attackSpeed}`;
+		this.gemInfoText.setText(info);
+
+		// Draw a circle indicating gem range
+		this.rangeIndicator.clear();
+		this.rangeIndicator.strokeCircle(gem.x + 16, gem.y + 16, gem.range);
 	}
 
 	handlePlayerDeath() {

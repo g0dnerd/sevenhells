@@ -18,8 +18,13 @@ export default class Enemy extends Phaser.GameObjects.Sprite {
         this.isHandledForDeath = false;
 
         this.lifeCost = lifeCost;
-        this.health = Enemy.calculateHealthByID(id);
+        this.maxHealth = Enemy.calculateHealthByID(id);
+		this.currentHealth = this.maxHealth;
         this.goldValue = Enemy.calculateGoldValueByID(id);
+
+		// Health bar setup
+		this.healthBar = scene.add.graphics();
+		this.updateHealthBar();
 
         // Initialize the current node based on given pixel coordinates
         this.currentNode = { x: Math.floor(x / 32), y: Math.floor(y / 32) };
@@ -102,7 +107,8 @@ export default class Enemy extends Phaser.GameObjects.Sprite {
 	}
 
 	takeDamage(amount) {
-		this.health -= amount;
+		this.currentHealth -= amount;
+		this.updateHealthBar();
 	}
 
 	updateProgress() {
@@ -147,6 +153,37 @@ export default class Enemy extends Phaser.GameObjects.Sprite {
 
 	markAsDead() {
 		this.isHandledForDeath = true;
+	}
+	
+	updateHealthBar() {
+		this.healthBar.clear();
+
+		// Position of the health bar
+        const barWidth = 40;
+        const barHeight = 5;
+        const barX = this.x - barWidth / 2 + 24;
+        const barY = this.y - 10; // Adjust to place it above the enemy's head
+
+        // Draw the total health (green part)
+        this.healthBar.fillStyle(0x00ff00);
+        this.healthBar.fillRect(barX, barY, barWidth, barHeight);
+
+        // Calculate the width of the missing health (red part)
+        const missingHealthWidth = barWidth * (1 - this.currentHealth / this.maxHealth);
+
+        // Draw the missing health (red part)
+        this.healthBar.fillStyle(0xff0000);
+        this.healthBar.fillRect(barX, barY, missingHealthWidth, barHeight);
+	}
+
+	destroy() {
+		// Modify the destroy method to also destroy the health bar
+		if (this.healthBar) {
+			this.healthBar.clear();
+			this.healthBar.destroy()
+		}
+
+		super.destroy();
 	}
 	
 }
