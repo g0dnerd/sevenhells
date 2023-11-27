@@ -14,6 +14,8 @@ export default class Enemy extends Phaser.GameObjects.Sprite {
         this.finalX = this.checkpoints[this.checkpoints.length - 1].x
         this.finalY = this.checkpoints[this.checkpoints.length - 1].y
 
+		this.progress = 0;
+
         this.lifeCost = lifeCost;
         this.health = Enemy.calculateHealthByID(id);
         this.goldValue = Enemy.calculateGoldValueByID(id);
@@ -73,6 +75,8 @@ export default class Enemy extends Phaser.GameObjects.Sprite {
 	        		return;
 	        	}
 
+				this.updateProgress();
+
 	            // console.log(`Reached node (${nextNode.x}, ${nextNode.y})`);
 	            if ((this.x/32 == this.finalX) && (this.y/32 == this.finalY)) {
 	            	console.log("Enemy reached destination. Deducting life and destroying.");
@@ -99,6 +103,15 @@ export default class Enemy extends Phaser.GameObjects.Sprite {
 	    });
 	}
 
+	takeDamage(amount) {
+		this.health -= amount;
+		console.log(`Enemy took damage. ${this.health} health remaining.`);
+	}
+
+	updateProgress() {
+		this.progress++;
+	}
+
 	static get type() {
 		return ['basic_human', 'consultant'];
 	}
@@ -107,7 +120,7 @@ export default class Enemy extends Phaser.GameObjects.Sprite {
 		switch(id) {
 			case 0:
 				// Basic human
-				return 40;
+				return 200;
 			case 1:
 				// Consultant
 				return 80;

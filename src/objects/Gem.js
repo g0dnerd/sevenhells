@@ -16,6 +16,8 @@ export default class Gem extends Phaser.GameObjects.Sprite {
 		this.nextShotTime = -1;
 		this.shotsFired = 0;
 
+		this.projectiles = [];
+
 		this.range = Gem.calculateRange(rarity, colorIndex);
 		this.damage = Gem.calculateRange(rarity, colorIndex);
 		this.attackSpeed = Gem.calculateAttackSpeed(rarity, colorIndex);
@@ -34,7 +36,10 @@ export default class Gem extends Phaser.GameObjects.Sprite {
 
 		console.log(`Trying to shoot a target at ${this.target.x},${this.target.y}`);
 
-		const projectile = new Projectile(this.scene, this.x, this.y, this.target, this.damage);
+		const projectile = new Projectile(
+			this.scene, this.x + 16, this.y + 16, this.target, this.damage);
+		this.projectiles.push(projectile);
+		this.scene.projectileSprites.add(projectile);
 		this.scene.projectiles.push(projectile);
 		// this.shotsFired++;
 		// console.log(`${this.shotsFired} shots fired at ${this.scene.time.now}.`);
@@ -44,8 +49,14 @@ export default class Gem extends Phaser.GameObjects.Sprite {
 		this.target = null;
 	}
 
+	clearProjectiles() {
+		this.projectiles.forEach(projectile => {
+			projectile.destroy();
+		})
+	}
+
 	stopShooting() {
-		this.clearTarget();
+		// this.clearTarget();
 		// console.log("Stopped shooting.");
 	}
 

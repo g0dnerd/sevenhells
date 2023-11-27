@@ -1,4 +1,4 @@
-import Stone from '../objects/Stone.js';
+import Projectile from '../objects/Projectile.js';
 import Gem from '../objects/Gem.js';
 import Enemy from '../objects/Enemy.js';
 import AStar from '../astar.js';
@@ -35,6 +35,11 @@ export default class GameScene extends Phaser.Scene {
 		this.gems = [];
 		this.enemies = [];
 		this.projectiles = [];
+
+		this.projectileSprites = this.physics.add.group({
+			classType: Projectile,
+			runChildUpdate: true
+		});
  
 		// Mouse event listener
 		this.input.on('pointerdown', (pointer) => {
@@ -130,17 +135,30 @@ export default class GameScene extends Phaser.Scene {
 
 			this.gems.forEach(gem => {
 				const targetEnemy = this.findNextTarget(gem);
-				gem.target = targetEnemy;
-				if (gem.nextShotTime <= currentTime) {
-					gem.shoot(targetEnemy);
-					gem.nextShotTime = currentTime + gem.attackSpeed;
-					// console.log(`Next shot to be fired at ${gem.nextShotTime}`);
+				if (targetEnemy) {
+					gem.target = targetEnemy;
+					if (gem.nextShotTime <= currentTime) {
+						// console.log(`Firing shot at enemy at ${targetEnemy.x/32}, ${targetEnemy.y/32}`);
+						gem.shoot(targetEnemy);
+						gem.nextShotTime = currentTime + gem.attackSpeed;
+					}
 				} else {
-					gem.stopShooting();
+					gem.clearTarget();
 				}
+	
 			});
 
-			this.checkProjectileHits();
+			// Check for projectile collisions with enemies
+			this.projectiles.forEach(projectile => {
+				this.enemies.forEach(enemy => {
+					if (!enemy.isHandledForDeath && Phaser.Geom.Intersects.RectangleToRectangle(projectile.getBounds(), enemy.getBounds())) {
+						this.handleProjectileHit(projectile, enemy);
+					}
+				})
+			});
+
+			// Clean up destroyed projectiles
+			this.projectiles = this.projectiles.filter(proj => !proj.isDestroyed);
 		}
 
 	}
@@ -306,39 +324,51 @@ export default class GameScene extends Phaser.Scene {
 
 	findNextTarget(gem) {
 		const enemiesInRange = this.getEnemiesInTurretRange(gem);
-		if (enemiesInRange.length > 0) {
-			return enemiesInRange[0];
-		}
+		// console.log(`Found ${enemiesInRange.length} targets`);
 
-		return;
+		if (gem.target && enemiesInRange.includes(gem.target)) {
+			return gem.target;
+		}
+		
+		return this.getFurthestEnemyInMaze(enemiesInRange);
 	}
 
-	checkProjectileHits() {
-	    this.projectiles.forEach(projectile => {
-	        this.enemies.forEach(enemy => {
-	            if (!enemy.isDead && Phaser.Geom.Intersects.RectangleToRectangle(projectile.getBounds(), enemy.getBounds())) {
-	                enemy.health -= projectile.damage;
-	                projectile.destroy(); // Destroy the projectile after it hits
+	getFurthestEnemyInMaze(enemies) {
+		if (enemies.length === 0) {
+			return null;
+		}
 
-	                // Check if the enemy is dead
-	                if (enemy.health <= 0) {
-	                	enemy.markAsDead();
-	                    this.handleEnemyDeath(enemy);
-	                }
-	            }
-	        });
-	    });
+		enemies.sort((a, b) => b.progress - a.progress);
+	
+		return enemies[0];
+	}
+
+	handleProjectileHit(projectile, enemy) {
+		console.log("Projectile hit detected.");
+		enemy.takeDamage(projectile.damage);
+		if (enemy.health <= 0) {
+			this.handleEnemyDeath(enemy);
+		}
+		projectile.destroy();
 	}
 
 	handleEnemyDeath(enemy) {
+		console.log("Enemy death event registered.");
 		this.gold += enemy.goldValue;
 		this.goldText.setText(`Embers: ${this.gold}`);
 		enemy.destroy();
+
+		const index = this.enemies.indexOf(enemy);
+
+		if (index !== -1) {
+			this.enemies.splice(index, 1);
+		}
 
 		// Clears the target for all gems targeting it
 		this.gems.forEach(gem => {
 			if (gem.target === enemy) {
 				gem.clearTarget();
+				gem.clearProjectiles();
 			}
 		});
 	}
