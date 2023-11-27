@@ -20,6 +20,7 @@ export default class BootScene extends Phaser.Scene {
 	    
 	    // Load the levels.json file
 	    this.load.json('levels', 'src/levels.json');
+        this.load.json('maps', 'src/maps.json');
 	}
 
 	create () {

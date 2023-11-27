@@ -107,6 +107,7 @@ export default class GameScene extends Phaser.Scene {
 		this.rangeIndicator = this.add.graphics({ lineStyle: { width: 2, color: 0x00ff00 } });
 
 		this.levelsData = this.cache.json.get('levels');
+		this.mapsData = this.cache.json.get('maps');
 
 		// Initialize game object arrays
 		this.gems = [];
@@ -146,11 +147,13 @@ export default class GameScene extends Phaser.Scene {
 	setupLevel(levelIndex) {
 
 		let levelData = this.levelsData.find(level => level.levelNumber === levelIndex);
+		let mapIndex = levelData.map;
+		let mapData = this.mapsData.find(map => map.mapName === mapIndex);
 
-		if (levelData) {
+		if (levelData && mapData) {
 			// Mark visual checkpoints as blocked squares in the map grid
 			// so that player can't place on checkpoints
-			levelData.checkpoints_visual.forEach(checkpoint => {
+			mapData.checkpoints_visual.forEach(checkpoint => {
 				this.mapGrid[checkpoint.x][checkpoint.y] = 'c';
 			});
 		}
@@ -307,6 +310,7 @@ export default class GameScene extends Phaser.Scene {
 				this.currentPhaseGems.splice(i, 1);
 			}
 		}
+		this.currentPhaseGems = [];
 	}
 
 	onStartLevelClicked() {
@@ -444,10 +448,7 @@ export default class GameScene extends Phaser.Scene {
 			this.enemies.splice(index, 1);
 		}
 
-		// If there are no more enemies, complete the level
-		if (this.enemies.length <= 0) {
-			this.completeLevel();
-		}
+		console.log(`Enemy removed. ${this.enemies.length} enemies remain on the map.`);
 	}
 
 	handleEnemyDeath(enemy) {
@@ -458,10 +459,7 @@ export default class GameScene extends Phaser.Scene {
 		enemy.destroy();
 
 		// Remove the dead enemy from the scene's enemies array
-		const index = this.enemies.indexOf(enemy);
-		if (index !== -1) {
-			this.enemies.splice(index, 1);
-		}
+		this.removeEnemy(enemy);
 
 		// Clears the target for all gems targeting it
 		this.gems.forEach(gem => {
@@ -470,6 +468,12 @@ export default class GameScene extends Phaser.Scene {
 				gem.clearProjectiles();
 			}
 		});
+
+		// If there are no more enemies on the map, complete the level
+		if (this.enemies.length === 0) {
+			console.log("Level completed successfully.");
+			this.completeLevel();
+		}
 	}
 
 	handleGemClick(gem) {
