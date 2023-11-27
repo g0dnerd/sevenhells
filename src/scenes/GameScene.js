@@ -133,10 +133,12 @@ export default class GameScene extends Phaser.Scene {
 			// Game logic
 			const currentTime = this.time.now;
 
+			// Assign each gem a target if one is available
 			this.gems.forEach(gem => {
 				const targetEnemy = this.findNextTarget(gem);
 				if (targetEnemy) {
 					gem.target = targetEnemy;
+					// If the gems attack is off cooldown, shoot the target
 					if (gem.nextShotTime <= currentTime) {
 						// console.log(`Firing shot at enemy at ${targetEnemy.x/32}, ${targetEnemy.y/32}`);
 						gem.shoot(targetEnemy);
@@ -318,18 +320,20 @@ export default class GameScene extends Phaser.Scene {
 	}
 
 	getEnemiesInTurretRange(turret) {
+		// Returns all enemies in range of turret
 		return this.enemies.filter((enemy) => 
 			Phaser.Math.Distance.Between(turret.x, turret.y, enemy.x, enemy.y) <= turret.range);
 	}
 
 	findNextTarget(gem) {
 		const enemiesInRange = this.getEnemiesInTurretRange(gem);
-		// console.log(`Found ${enemiesInRange.length} targets`);
 
+		// Continue targetting the current target if its still in range
 		if (gem.target && enemiesInRange.includes(gem.target)) {
 			return gem.target;
 		}
 		
+		// If not, target the enemy in range that has advanced the furthest
 		return this.getFurthestEnemyInMaze(enemiesInRange);
 	}
 
@@ -344,22 +348,24 @@ export default class GameScene extends Phaser.Scene {
 	}
 
 	handleProjectileHit(projectile, enemy) {
-		console.log("Projectile hit detected.");
+		// Enemy takes damage
 		enemy.takeDamage(projectile.damage);
 		if (enemy.health <= 0) {
+			// Enemy gets handled for death if HP is at or below 0
 			this.handleEnemyDeath(enemy);
 		}
+		// Projectile gets cleaned up
 		projectile.destroy();
 	}
 
 	handleEnemyDeath(enemy) {
-		console.log("Enemy death event registered.");
+		// Add gold and update gold text
 		this.gold += enemy.goldValue;
 		this.goldText.setText(`Embers: ${this.gold}`);
 		enemy.destroy();
 
+		// Remove the dead enemy from the scene's enemies array
 		const index = this.enemies.indexOf(enemy);
-
 		if (index !== -1) {
 			this.enemies.splice(index, 1);
 		}

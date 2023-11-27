@@ -2,11 +2,10 @@ export default class Enemy extends Phaser.GameObjects.Sprite {
 	constructor(scene, x, y, checkpoints, id = 0, lifeCost = 1) {
         super(scene, x, y, Enemy.type[id]);
 
-        this.isHandledForDeath = false;
-
         this.scene = scene;
 
         scene.add.existing(this);
+
         // Set the origin to the center
         this.setOrigin(0, 0);
 
@@ -14,7 +13,9 @@ export default class Enemy extends Phaser.GameObjects.Sprite {
         this.finalX = this.checkpoints[this.checkpoints.length - 1].x
         this.finalY = this.checkpoints[this.checkpoints.length - 1].y
 
+		// Set various flags and parameters
 		this.progress = 0;
+        this.isHandledForDeath = false;
 
         this.lifeCost = lifeCost;
         this.health = Enemy.calculateHealthByID(id);

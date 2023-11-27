@@ -48,7 +48,7 @@ export default class Projectile extends Phaser.GameObjects.Sprite {
 	}
 
 	destroy() {
-		console.log("Destroying projectile.");
+		// Set the flag and call parent's destroy method
 		this.isDestroyed = true;
 		super.destroy();
 	}
