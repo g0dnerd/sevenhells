@@ -31,11 +31,6 @@ export default class GameScene extends Phaser.Scene {
 			this.startLevel(this.currentLevel);
 		});
 
-		// Initialize game object arrays
-		this.gems = [];
-		this.enemies = [];
-		this.projectiles = [];
-
 		this.projectileSprites = this.physics.add.group({
 			classType: Projectile,
 			runChildUpdate: true
@@ -45,8 +40,6 @@ export default class GameScene extends Phaser.Scene {
 		this.input.on('pointerdown', (pointer) => {
 			this.mouseDown(pointer.x, pointer.y);
 		});
-
-		this.gemTiers = ['Primitive', 'Fiery', 'Infernal', 'Hellforged', 'Demonic', 'Abyssal', 'Diabolical'];
 
 		// Initialize gem chances
 		this.gemChances = [0.8, 0.15, 0.05, 0, 0, 0, 0];
@@ -59,13 +52,6 @@ export default class GameScene extends Phaser.Scene {
 				{ font: '16px Arial', fill: '#000000' });
 		});
 
-
-		this.levelsData = this.cache.json.get('levels');
-		this.placementsPerPhase = 0;
-		this.remainingPlacements = 0;
-		this.lives = 0;
-		this.gold = 0;
-
 		// Initialize lives
 		this.hpText = this.add.text(1300, 250, 'Lives: 0',
 			{ font: '18px Arial', fill: '#000000' });
@@ -74,8 +60,21 @@ export default class GameScene extends Phaser.Scene {
 		this.goldText = this.add.text(1300, 300, 'Embers: 0',
 			{ font: '18px Arial', fill: '#000000' });
 
-		this.setupLevel(this.currentLevel);
+		this.levelsData = this.cache.json.get('levels');
 
+		this.gemTiers = ['Primitive', 'Fiery', 'Infernal', 'Hellforged', 'Demonic', 'Abyssal', 'Diabolical'];
+
+		// Initialize game object arrays
+		this.gems = [];
+		this.enemies = [];
+		this.projectiles = [];
+
+		this.placementsPerPhase = 0;
+		this.remainingPlacements = 0;
+		this.lives = 0;
+		this.gold = 0;
+
+		this.setupLevel(this.currentLevel);
 
 		// Create an instance of the A* pathfinding algorithm and add the spawn point and checkpoints
 		this.astar = new AStar(this.mapGrid);
@@ -118,6 +117,7 @@ export default class GameScene extends Phaser.Scene {
 	}
 
 	startLevel(levelIndex) {
+		// Once a wave starts, disable placement phase
 		this.isPlacementPhase = false;
 
 		let levelData = this.levelsData.find(level => level.levelNumber === levelIndex);
@@ -131,6 +131,8 @@ export default class GameScene extends Phaser.Scene {
 	update() {
 		if (!this.isPlacementPhase) {
 			// Game logic
+
+			// Note current time to check attack speed cooldowns against
 			const currentTime = this.time.now;
 
 			// Assign each gem a target if one is available
@@ -140,7 +142,6 @@ export default class GameScene extends Phaser.Scene {
 					gem.target = targetEnemy;
 					// If the gems attack is off cooldown, shoot the target
 					if (gem.nextShotTime <= currentTime) {
-						// console.log(`Firing shot at enemy at ${targetEnemy.x/32}, ${targetEnemy.y/32}`);
 						gem.shoot(targetEnemy);
 						gem.nextShotTime = currentTime + gem.attackSpeed;
 					}
@@ -173,6 +174,7 @@ export default class GameScene extends Phaser.Scene {
 
 	placeRandomGem (x, y) {
 		if (!this.isPlacementPhase) {
+			// If the game is not in a placement phase, don't do anything
 			return;
 		}
 		let cleanedCoords = this.centerGridCoords(x, y);
