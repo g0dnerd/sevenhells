@@ -78,11 +78,8 @@ export default class Enemy extends Phaser.GameObjects.Sprite {
 
 				this.updateProgress();
 
-	            // console.log(`Reached node (${nextNode.x}, ${nextNode.y})`);
 	            if ((this.x/32 == this.finalX) && (this.y/32 == this.finalY)) {
-	            	console.log("Enemy reached destination. Deducting life and destroying.");
-	            	this.scene.deductLife(this.lifeCost);
-	            	// this.destroy();
+	            	this.hasReachedTarget()
 	            }
 	            // Once the first move is done, remove the node from the path
 	            if (path[0] === nextNode) { // Confirm that we've reached the correct node before shifting
@@ -106,14 +103,23 @@ export default class Enemy extends Phaser.GameObjects.Sprite {
 
 	takeDamage(amount) {
 		this.health -= amount;
-		console.log(`Enemy took damage. ${this.health} health remaining.`);
 	}
 
 	updateProgress() {
 		this.progress++;
 	}
 
+	hasReachedTarget() {
+		// If the enemy has reached its target, deduct life,
+		// remove it, mark it for death and destroy it
+		this.scene.deductLife(this.lifeCost);
+		this.scene.removeEnemy(this);
+		this.markAsDead();
+		super.destroy();
+	}
+
 	static get type() {
+		// Returns the enemy type name by ID as an index
 		return ['basic_human', 'consultant'];
 	}
 
@@ -140,7 +146,7 @@ export default class Enemy extends Phaser.GameObjects.Sprite {
 	}
 
 	markAsDead() {
-		this.isDead = true;
+		this.isHandledForDeath = true;
 	}
 	
 }

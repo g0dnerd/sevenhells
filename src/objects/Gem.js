@@ -34,15 +34,11 @@ export default class Gem extends Phaser.GameObjects.Sprite {
 			return;
 		}
 
-		console.log(`Trying to shoot a target at ${this.target.x},${this.target.y}`);
-
 		const projectile = new Projectile(
 			this.scene, this.x + 16, this.y + 16, this.target, this.damage);
 		this.projectiles.push(projectile);
 		this.scene.projectileSprites.add(projectile);
 		this.scene.projectiles.push(projectile);
-		// this.shotsFired++;
-		// console.log(`${this.shotsFired} shots fired at ${this.scene.time.now}.`);
 	}
 
 	clearTarget() {
@@ -53,11 +49,6 @@ export default class Gem extends Phaser.GameObjects.Sprite {
 		this.projectiles.forEach(projectile => {
 			projectile.destroy();
 		})
-	}
-
-	stopShooting() {
-		// this.clearTarget();
-		// console.log("Stopped shooting.");
 	}
 
 	static get colors() {

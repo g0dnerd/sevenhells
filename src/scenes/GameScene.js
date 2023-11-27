@@ -41,6 +41,8 @@ export default class GameScene extends Phaser.Scene {
 			this.mouseDown(pointer.x, pointer.y);
 		});
 
+		this.gemTiers = ['Primitive', 'Fiery', 'Infernal', 'Hellforged', 'Demonic', 'Abyssal', 'Diabolical'];
+
 		// Initialize gem chances
 		this.gemChances = [0.8, 0.15, 0.05, 0, 0, 0, 0];
 		// Show gem chances in the UI panel
@@ -61,8 +63,6 @@ export default class GameScene extends Phaser.Scene {
 			{ font: '18px Arial', fill: '#000000' });
 
 		this.levelsData = this.cache.json.get('levels');
-
-		this.gemTiers = ['Primitive', 'Fiery', 'Infernal', 'Hellforged', 'Demonic', 'Abyssal', 'Diabolical'];
 
 		// Initialize game object arrays
 		this.gems = [];
@@ -239,7 +239,7 @@ export default class GameScene extends Phaser.Scene {
 		this.isPlacementPhase = false;
 	}
 
-	onLevelComplete() {
+	completeLevel() {
 		this.currentLevel++;
 		this.setupLevel(this.currentLevel);
 	}
@@ -319,6 +319,9 @@ export default class GameScene extends Phaser.Scene {
 	deductLife (amount) {
 		this.lives = this.lives - amount;
 		this.hpText.setText(`Lives: ${this.lives}`);
+		if (this.lives <= 0) {
+			this.handlePlayerDeath();
+		}
 	}
 
 	getEnemiesInTurretRange(turret) {
@@ -360,7 +363,21 @@ export default class GameScene extends Phaser.Scene {
 		projectile.destroy();
 	}
 
+	removeEnemy(enemy) {
+		// Remove the enemy from the list of enemies
+		const index = this.enemies.indexOf(enemy);
+		if (index !== -1) {
+			this.enemies.splice(index, 1);
+		}
+
+		// If there are no more enemies, complete the level
+		if (this.enemies.length <= 0) {
+			this.completeLevel();
+		}
+	}
+
 	handleEnemyDeath(enemy) {
+		console.log(`Enemy at ${Math.floor(enemy.x/32)}, ${Math.floor(enemy.y/32)} has died.`);
 		// Add gold and update gold text
 		this.gold += enemy.goldValue;
 		this.goldText.setText(`Embers: ${this.gold}`);
@@ -379,5 +396,9 @@ export default class GameScene extends Phaser.Scene {
 				gem.clearProjectiles();
 			}
 		});
+	}
+
+	handlePlayerDeath() {
+		// TODO
 	}
 }
