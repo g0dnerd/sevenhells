@@ -133,7 +133,7 @@ export default class Enemy extends Phaser.GameObjects.Sprite {
 		switch(id) {
 			case 0:
 				// Basic human
-				return 200;
+				return 100;
 			case 1:
 				// Consultant
 				return 80;

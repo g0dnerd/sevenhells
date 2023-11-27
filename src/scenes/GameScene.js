@@ -59,7 +59,6 @@ export default class GameScene extends Phaser.Scene {
 		});
 
 		// Initialize gem chance text
-
 		this.add.text(1300, 50, 'Gem Chances:',
 			{ font: '18px Arial', fill: '#000000'});
 
@@ -84,8 +83,16 @@ export default class GameScene extends Phaser.Scene {
 		this.gemTier6Text = this.add.text(1300, 225, `${this.gemTiers[6]}: ${this.gemChances[6]*100}%`,
 		{ font: '16px Arial', fill: '#000000' });
 
+		// Initialize keep gem button
+		this.keepGemButton = this.add.text(1300, 350, 'Keep Gem',
+			{ font: '18px Arial', fill: '#0000FF' });
+		this.keepGemButton.setInteractive();
+		this.keepGemButton.on('pointerdown', () => {
+			this.keepGem();
+		})
+
 		// Initialize HP text
-		this.hpText = this.add.text(1300, 300, 'Lives: 0',
+		this.hpText = this.add.text(1300, 375, 'Lives: 0',
 			{ font: '18px Arial', fill: '#000000' });
 
 		// Initialize embers text
@@ -105,6 +112,10 @@ export default class GameScene extends Phaser.Scene {
 		this.gems = [];
 		this.enemies = [];
 		this.projectiles = [];
+		this.stones = [];
+		this.currentPhaseGems = [];
+
+		this.selectedGem = null;
 
 		this.placementsPerPhase = 0;
 		this.remainingPlacements = 0;
@@ -191,8 +202,11 @@ export default class GameScene extends Phaser.Scene {
 			// Check for projectile collisions with enemies
 			this.projectiles.forEach(projectile => {
 				this.enemies.forEach(enemy => {
-					if (!enemy.isHandledForDeath && Phaser.Geom.Intersects.RectangleToRectangle(projectile.getBounds(), enemy.getBounds())) {
-						this.handleProjectileHit(projectile, enemy);
+					if (projectile.target === enemy) {
+						// Only handle the hit if it was the intended target
+						if (!enemy.isHandledForDeath && Phaser.Geom.Intersects.RectangleToRectangle(projectile.getBounds(), enemy.getBounds())) {
+							this.handleProjectileHit(projectile, enemy);
+						}
 					}
 				})
 			});
@@ -209,7 +223,7 @@ export default class GameScene extends Phaser.Scene {
 	}
 
 	mouseDown (x, y) {
-	    if (this.isPlacementPhase) {
+	    if (this.isPlacementPhase && x <= 1280) {
 	        this.placeRandomGem(x, y);
 	    }
 	}
@@ -235,6 +249,7 @@ export default class GameScene extends Phaser.Scene {
 				let gem = new Gem(this, cleanedCoords[0], cleanedCoords[1], rarity, colorIndex);
 				console.log(`Placed ${this.gemTiers[gem.rarity].toLowerCase()} ${gem.color} gem with range ${gem.range}, dmg ${gem.damage} and AS delay ${gem.attackSpeed}`);
 				this.gems.push(gem);
+				this.currentPhaseGems.push(gem);
 
 				// Mark the grid node as occupied
 				this.mapGrid[cleanedCoords[0]/32][cleanedCoords[1]/32] = "1";
@@ -275,6 +290,23 @@ export default class GameScene extends Phaser.Scene {
 	centerGridCoords (x, y) {
 		// returns the center of the grid square the user clicked in
 		return [(x-x%32), (y-y%32)];
+	}
+
+	keepGem() {
+		if (!this.selectedGem) {
+			return;
+		}
+
+		// Remove all other gems from the current placement phase from their game objects array
+		// Iterate over the array backwards so that splicing doesn't affect the array
+		// while working on it
+		for (let i = this.currentPhaseGems.length - 1; i >= 0; i--) {
+			const gem = this.currentPhaseGems[i];
+			if (gem !== this.selectedGem) {
+				gem.turnToStone();
+				this.currentPhaseGems.splice(i, 1);
+			}
+		}
 	}
 
 	onStartLevelClicked() {
@@ -441,7 +473,7 @@ export default class GameScene extends Phaser.Scene {
 	}
 
 	handleGemClick(gem) {
-		console.log("Gem clicked.");
+		this.selectedGem = gem;
 		// Update the gem info text in the reserved UI space
 		const info = `${this.gemTiers[gem.rarity]} ${gem.color}\nDamage: ${gem.damage}\nRange: ${gem.range}\nAttack Speed: ${gem.attackSpeed}`;
 		this.gemInfoText.setText(info);
@@ -449,6 +481,13 @@ export default class GameScene extends Phaser.Scene {
 		// Draw a circle indicating gem range
 		this.rangeIndicator.clear();
 		this.rangeIndicator.strokeCircle(gem.x + 16, gem.y + 16, gem.range);
+	}
+
+	removeGem(gem) {
+		const index = this.gems.indexOf(gem);
+		if (index !== -1) {
+			this.gems.splice(index, 1);
+		}
 	}
 
 	handlePlayerDeath() {

@@ -1,4 +1,5 @@
 import Projectile from './Projectile.js';
+import Stone from './Stone.js';
 
 export default class Gem extends Phaser.GameObjects.Sprite {
 	constructor(scene, x, y, rarity, colorIndex) {
@@ -32,6 +33,12 @@ export default class Gem extends Phaser.GameObjects.Sprite {
 		this.on('pointerdown', function (pointer) {
 			scene.handleGemClick(this);
 		});
+	}
+
+	turnToStone() {
+		const stone = new Stone(this.scene, this.x, this.y);
+		this.scene.stones.push(stone);
+		this.destroy();
 	}
 
 	shoot() {
@@ -138,5 +145,12 @@ export default class Gem extends Phaser.GameObjects.Sprite {
 				// Red gem
 				return 1000-50*(rarity+1);
 		}
+	}
+
+	destroy() {
+		this.scene.removeGem(this);
+		this.clearTarget();
+		this.clearProjectiles();
+		super.destroy();
 	}
 }
