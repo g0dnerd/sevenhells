@@ -8,7 +8,7 @@ export default class GameUI {
         this.gemChancesText = null;
         this.goldText = null;
         this.gemInfoText = null;
-        // ... other UI elements
+        this.combineTextColor = '#E3E3E3';
     }
 
     createStartButton() {
@@ -36,6 +36,15 @@ export default class GameUI {
             .on('pointerdown', () => this.scene.keepGem())
             .on('pointerover', () => this.keepGemButton.setStyle({ fill: '#FF0000' }))
             .on('pointerout', () => this.keepGemButton.setStyle({ fill: '#0000FF' }));
+    }
+
+    createCombineButton() {
+        this.combineGemsButton = this.scene.add.text(1300, 340, 'Combine Gems',
+			{ font: '18px Arial', fill: '#E3E3E3', backgroundColor: '#FFFFFF', padding: { left: 5, right: 5, top: 5, bottom: 5 } })
+            .setInteractive()
+            .on('pointerdown', () => this.scene.combineGems())
+            .on('pointerover', () => this.combineGemsButton.setStyle({ fill: '#FF0000' }))
+            .on('pointerout', () => this.combineGemsButton.setStyle({ fill: this.combineTextColor }));
     }
 
     createGemChanceText() {
@@ -94,11 +103,22 @@ export default class GameUI {
 		this.gemInfoText.setText(info);
     }
 
+    setCombineButtonActive(status = true) {
+        if (status) {
+            this.combineTextColor = '#0000FF';
+        } else {
+            this.combineTextColor = '#E3E3E3';
+        }
+        this.combineGemsButton.setStyle(
+            { font: '18px Arial', fill: this.combineTextColor });
+    }
+
     // Call this method in the GameScene's create method to set up the UI
     setup() {
         this.createStartButton();
         this.createPlacementButton();
         this.createKeepButton();
+        this.createCombineButton();
         this.createGemChanceText();
         this.createStatusTexts();
     }

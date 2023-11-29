@@ -10,7 +10,8 @@ export default class Gem extends Phaser.GameObjects.Sprite {
 
 		this.scene = scene;
 		this.rarity = rarity;
-		this.color = Gem.colors[colorIndex];
+		this.colorIndex = colorIndex;
+		this.color = Gem.colors[this.colorIndex];
 
 		this.target = null;
 

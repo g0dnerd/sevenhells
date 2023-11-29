@@ -12,6 +12,7 @@ export default class BootScene extends Phaser.Scene {
 	    this.load.image('map', 'assets/images/map.png');
 	    this.load.image('grid', 'assets/images/grid.png');
 	    this.load.image('stone', 'assets/images/stone.png');
+        this.load.image('gem_hover', 'assets/images/gem_hover.png');
 	    this.load.image('projectile', 'assets/images/projectile.png');
 	    this.load.spritesheet('basic_human', 'assets/images/spritesheet_enemy_basic.png',
 	        { frameWidth: 32, frameHeight: 32 });

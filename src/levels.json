@@ -5,7 +5,8 @@
     "enemies": [
       { "type": "basic_human", "amount": 5 }
     ],
-    "placements_per_phase": 5
+    "placements_per_phase": 5,
+    "lives": 10
   },
   {
     "levelNumber": 2,
@@ -13,6 +14,7 @@
     "enemies": [
       { "type": "basic_human", "amount": 10 }
     ],
-    "placements_per_phase": 5
+    "placements_per_phase": 5,
+    "lives": 800
   }
 ]

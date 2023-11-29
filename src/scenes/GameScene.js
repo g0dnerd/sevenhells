@@ -8,6 +8,7 @@ export default class GameScene extends Phaser.Scene {
 	constructor() {
 		super({key: 'GameScene' });
 		this.mapgrid = [];
+		this.gemPreview = null;
 
 		// init game state variable - game does not start in a placement phase
 		this.isPlacementPhase = false;
@@ -18,12 +19,12 @@ export default class GameScene extends Phaser.Scene {
 
 		// add scene background
 		this.add.image(640, 480, 'map');
-		this.add.image(640, 480, 'grid');
+		// this.add.image(640, 480, 'grid');
 
 		this.currentLevel = 1;
 
 		// Initialize an empty grid
-		this.gridSize = 32;
+		this.GRID_SIZE = 32;
 		this.mapGrid = Array(40).fill(0).map(() => Array(30).fill(0)); 
 
 		this.projectileSprites = this.physics.add.group({
@@ -36,6 +37,7 @@ export default class GameScene extends Phaser.Scene {
 			this.mouseDown(pointer.x, pointer.y);
 		});
 
+		// Store gem tier names as a lookup array
 		this.gemTiers = 
 		['Primitive', 'Fiery', 'Infernal', 'Hellforged', 'Demonic', 'Abyssal', 'Diabolical'];
 
@@ -47,6 +49,9 @@ export default class GameScene extends Phaser.Scene {
 
 		this.levelsData = this.cache.json.get('levels');
 		this.mapsData = this.cache.json.get('maps');
+
+		this.gemPreview = this.add.sprite(0, 0, 'gem_hover').setVisible(false);
+		this.gemPreview.setOrigin(0, 0);
 
 		// Initialize game object arrays
 		this.gems = [];
@@ -82,6 +87,7 @@ export default class GameScene extends Phaser.Scene {
 
 	startPlacementPhase() {
 		this.isPlacementPhase = true;
+        this.input.on('pointermove', this.updateGemPreview, this);
 	}
 
 	setupLevel(levelIndex) {
@@ -169,6 +175,11 @@ export default class GameScene extends Phaser.Scene {
 	    if (this.isPlacementPhase && x <= 1280) {
 	        this.placeRandomGem(x, y);
 	    }
+		/* let cleanedCoords = this.centerGridCoords(x, y);
+		if (this.isPlacementPhase && this.mapGrid[cleanedCoords[0]/this.GRID_SIZE][cleanedCoords[1]/this.GRID_SIZE] == 0) {
+            // Hide the preview sprite when a gem is placed
+            this.gemPreview.setVisible(false);
+        } */
 	}
 
 	placeRandomGem (x, y) {
@@ -177,11 +188,11 @@ export default class GameScene extends Phaser.Scene {
 			return;
 		}
 		let cleanedCoords = this.centerGridCoords(x, y);
-		console.log(`trying to place at ${cleanedCoords[0]/32},${cleanedCoords[1]/32}`);
+		console.log(`trying to place at ${cleanedCoords[0]/this.GRID_SIZE},${cleanedCoords[1]/this.GRID_SIZE}`);
 		// if the clicked tile is empty
 
 		if (this.remainingPlacements > 0) {
-			if (this.mapGrid[cleanedCoords[0]/32][cleanedCoords[1]/32] == 0) {
+			if (this.mapGrid[cleanedCoords[0]/this.GRID_SIZE][cleanedCoords[1]/this.GRID_SIZE] == 0) {
 				// Randomize rarity based on current chances
 				let rarity = this.getRandomRarity(this.gemChances);
 
@@ -195,13 +206,17 @@ export default class GameScene extends Phaser.Scene {
 				this.currentPhaseGems.push(gem);
 
 				// Mark the grid node as occupied
-				this.mapGrid[cleanedCoords[0]/32][cleanedCoords[1]/32] = "1";
-				this.astar.nodes[cleanedCoords[0]/32][cleanedCoords[1]/32].wall = true;
+				this.mapGrid[cleanedCoords[0]/this.GRID_SIZE][cleanedCoords[1]/this.GRID_SIZE] = "1";
+				this.astar.nodes[cleanedCoords[0]/this.GRID_SIZE][cleanedCoords[1]/this.GRID_SIZE].wall = true;
 
 				// Update remaining placements
-				this.remainingPlacements--;			}
+				this.remainingPlacements--;
+				if (this.remainingPlacements == 0) {
+					this.endPlacementPhase();
+				}
+			}
 			else {
-				if (this.mapGrid[cleanedCoords[0]/32][cleanedCoords[1]/32] == 'c') {
+				if (this.mapGrid[cleanedCoords[0]/this.GRID_SIZE][cleanedCoords[1]/this.GRID_SIZE] == 'c') {
 					console.log("tile is a checkpoint.");
 				}
 				else {
@@ -232,7 +247,7 @@ export default class GameScene extends Phaser.Scene {
 
 	centerGridCoords (x, y) {
 		// returns the center of the grid square the user clicked in
-		return [(x-x%32), (y-y%32)];
+		return [(x-x%this.GRID_SIZE), (y-y%this.GRID_SIZE)];
 	}
 
 	keepGem() {
@@ -251,6 +266,34 @@ export default class GameScene extends Phaser.Scene {
 			}
 		}
 		this.currentPhaseGems = [];
+	}
+
+	combineGems() {
+		// Only work if the currently selected gem has a duplicate
+		// from the current placement phase
+		let duplicateGems = this.checkForDuplicates(this.selectedGem);
+		if (duplicateGems.length === 0) {
+			return;
+		}
+
+		// When combining two duplicates
+		console.log(`Combining gems from rarity ${this.selectedGem.rarity} and color ${this.selectedGem.color}`);
+		if (duplicateGems.length >= 1 && duplicateGems.length < 3) {
+			let newGem = new Gem(
+				this, this.selectedGem.x, this.selectedGem.y, this.selectedGem.rarity + 1, this.selectedGem.colorIndex);
+			this.gems.push(newGem);
+			this.currentPhaseGems.push(newGem);
+			const index = this.gems.indexOf(this.selectedGem);
+			if (index !== -1) {
+				this.gems.splice(index, 1);
+				this.currentPhaseGems.splice(index, 1);
+			}
+			this.selectedGem.destroy();
+			this.handleGemClick(newGem);
+			this.keepGem();
+		}
+		
+		
 	}
 
 	onStartLevelClicked() {
@@ -326,7 +369,7 @@ export default class GameScene extends Phaser.Scene {
 
 	spawnEnemy (type, x, y) {
 		// console.log(`Spawning enemy of type ${type} at (${x},${y})`);
-		let enemy = new Enemy(this, x*32, y*32, this.checkpointsList);
+		let enemy = new Enemy(this, x*this.GRID_SIZE, y*this.GRID_SIZE, this.checkpointsList);
 		this.enemies.push(enemy);
 
 		let checkpoints = this.checkpointsList.slice();
@@ -336,7 +379,7 @@ export default class GameScene extends Phaser.Scene {
 
 	deductLife (amount) {
 		this.lives = this.lives - amount;
-		this.hpText.setText(`Lives: ${this.lives}`);
+		this.gameUI.updateHpText(this.lives);
 		if (this.lives <= 0) {
 			this.handlePlayerDeath();
 		}
@@ -392,7 +435,7 @@ export default class GameScene extends Phaser.Scene {
 	}
 
 	handleEnemyDeath(enemy) {
-		console.log(`Enemy at ${Math.floor(enemy.x/32)}, ${Math.floor(enemy.y/32)} has died.`);
+		console.log(`Enemy at ${Math.floor(enemy.x/this.GRID_SIZE)}, ${Math.floor(enemy.y/this.GRID_SIZE)} has died.`);
 		// Add gold and update gold text
 		this.gold += enemy.goldValue;
 		this.gameUI.updateGoldText(this.gold);
@@ -424,6 +467,26 @@ export default class GameScene extends Phaser.Scene {
 		// Draw a circle indicating gem range
 		this.rangeIndicator.clear();
 		this.rangeIndicator.strokeCircle(gem.x + 16, gem.y + 16, gem.range);
+
+		// Check if the clicked gem has duplicates and set the button to active if so
+		let duplicateGems = this.checkForDuplicates(gem);
+		this.gameUI.setCombineButtonActive(duplicateGems.length > 0);
+	}
+
+	checkForDuplicates(selectedGem) {
+		// Returns the amount of duplicates the currently selected gem has
+		// in the current placement phase
+		let duplicateGems = [];
+		this.gems.forEach(gem => {
+			if (selectedGem.color == gem.color && selectedGem.rarity == gem.rarity) {
+				if (selectedGem != gem) {
+					duplicateGems.push(gem);
+				}
+			}
+		});
+		console.log(`Found ${duplicateGems.length} duplicates for selected gem.`);
+
+		return duplicateGems;
 	}
 
 	removeGem(gem) {
@@ -435,5 +498,30 @@ export default class GameScene extends Phaser.Scene {
 
 	handlePlayerDeath() {
 		// TODO
+	}
+
+	updateGemPreview(pointer) {
+		if (pointer.x > 1280 || pointer.y > 960) {
+			this.gemPreview.setVisible(false);
+			return;
+		}
+        const [x, y] = this.centerGridCoords(pointer.x, pointer.y);
+        const gridX = x / this.GRID_SIZE;
+        const gridY = y / this.GRID_SIZE;
+
+        // Only show the preview on non-checkpoint and non-occupied squares
+        if (gridX <= 40 && gridY <= 30) {
+			if (this.isPlacementPhase && this.mapGrid[gridX][gridY] === 0) {
+				this.gemPreview.setPosition(x, y).setVisible(true);
+			} else {
+				this.gemPreview.setVisible(false);
+			}
+		}
+	}
+
+	endPlacementPhase() {
+		this.isPlacementPhase = false;
+		this.input.off('pointermove', this.updateGemPreview, this);
+		this.gemPreview.setVisible(false);
 	}
 }

@@ -24,6 +24,7 @@ You can combine three or more gems into special gems with cool abilites.
 * Diabolical (Mythic)  
 
 ## TODOs
+* Refactor Enemy.moveAlongPath()
 * Refactor static value calculation from switch cases to config or lookup table
 * Error handling
 * Combining gems
