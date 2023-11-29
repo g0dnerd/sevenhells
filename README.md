@@ -27,13 +27,14 @@ You can combine three or more gems into special gems with cool abilites.
 * Refactor Enemy.moveAlongPath()
 * Refactor static value calculation from switch cases to config or lookup table
 * Error handling
-* Combining gems
 * Special gems
 * Differentiate between waves & levels
 * Handle Player death & level completion  
 * Disallow gem placements that block the only path 
 
 ### DONE
+* Gem hover effect while in placement effect. Grid removed.
+* Combining gems
 * simple, but robust A* implementation using a list of checkpoints
 * enemy class as an extension of phaser's sprite class with a moveAlongPath function
 * ability for the player to place rocks on empty tiles 
@@ -42,3 +43,7 @@ You can combine three or more gems into special gems with cool abilites.
 * let turrets shoot things
 * generate embers for kills
 * introduce rarity system  
+  
+## KNOWN BUGS
+* gem combining crashes after first placement phase
+* white primitive gems are partly transparent
