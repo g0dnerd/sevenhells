@@ -1,3 +1,5 @@
+import EnemyData from '../data/EnemyData.js';
+
 export default class Enemy extends Phaser.GameObjects.Sprite {
 	constructor(scene, x, y, checkpoints, id = 0, lifeCost = 1) {
         super(scene, x, y, Enemy.type[id]);
@@ -18,9 +20,9 @@ export default class Enemy extends Phaser.GameObjects.Sprite {
         this.isHandledForDeath = false;
 
         this.lifeCost = lifeCost;
-        this.maxHealth = Enemy.calculateHealthByID(id);
+        this.maxHealth = EnemyData.hpValues[id];
 		this.currentHealth = this.maxHealth;
-        this.goldValue = Enemy.calculateGoldValueByID(id);
+        this.goldValue = EnemyData.goldValues[id];
 
 		// Health bar setup
 		this.healthBar = scene.add.graphics();
@@ -127,28 +129,6 @@ export default class Enemy extends Phaser.GameObjects.Sprite {
 	static get type() {
 		// Returns the enemy type name by ID as an index
 		return ['basic_human', 'consultant'];
-	}
-
-	static calculateHealthByID(id) {
-		switch(id) {
-			case 0:
-				// Basic human
-				return 100;
-			case 1:
-				// Consultant
-				return 80;
-		}
-	}
-
-	static calculateGoldValueByID(id) {
-		switch (id) {
-			case 0:
-				// Basic human
-				return 10;
-			case 1:
-				// Consultant
-				return 20;
-		}
 	}
 
 	markAsDead() {

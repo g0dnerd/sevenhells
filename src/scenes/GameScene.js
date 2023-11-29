@@ -106,13 +106,13 @@ export default class GameScene extends Phaser.Scene {
 		// Update this to use map data dynamically
 		this.startNode = this.astar.nodes[0][6];
 		this.checkpointsList = [
-			this.astar.nodes[10][6],
-			this.astar.nodes[10][15],
-			this.astar.nodes[20][15],
-			this.astar.nodes[30][15],
-			this.astar.nodes[30][6],
-			this.astar.nodes[20][6],
-			this.astar.nodes[20][22],
+			this.astar.nodes[9][6],
+			this.astar.nodes[9][15],
+			this.astar.nodes[19][15],
+			this.astar.nodes[29][15],
+			this.astar.nodes[29][6],
+			this.astar.nodes[19][6],
+			this.astar.nodes[19][22],
 			this.astar.nodes[39][22]
 		];
 	}
@@ -438,10 +438,12 @@ export default class GameScene extends Phaser.Scene {
 	}
 
 	handleEnemyDeath(enemy) {
-		console.log(`Enemy at ${Math.floor(enemy.x/this.GRID_SIZE)}, ${Math.floor(enemy.y/this.GRID_SIZE)} has died.`);
 		// Add gold and update gold text
 		this.gold += enemy.goldValue;
 		this.gameUI.updateGoldText(this.gold);
+
+		console.log(`Enemy at ${Math.floor(enemy.x/this.GRID_SIZE)}, 
+		${Math.floor(enemy.y/this.GRID_SIZE)} has died. Adding ${enemy.goldValue} gold.`);
 
 		// Remove the dead enemy from the scene's enemies array
 		this.removeEnemy(enemy);
