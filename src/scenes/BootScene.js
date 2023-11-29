@@ -9,6 +9,7 @@ export default class BootScene extends Phaser.Scene {
 	    	fontSize: '32px', fill: '#fff'});
 
 		// Import image assets
+        this.load.image('backdrop', 'assets/images/backdrop.png');
 	    this.load.image('map', 'assets/images/map.png');
 	    this.load.image('grid', 'assets/images/grid.png');
 	    this.load.image('stone', 'assets/images/stone.png');
@@ -20,8 +21,8 @@ export default class BootScene extends Phaser.Scene {
 	        { frameWidth: 32, frameHeight: 32 });
 	    
 	    // Load the levels.json file
-	    this.load.json('levels', 'src/levels.json');
-        this.load.json('maps', 'src/maps.json');
+	    this.load.json('levels', 'src/data/levels.json');
+        this.load.json('maps', 'src/data/maps.json');
 	}
 
 	create () {

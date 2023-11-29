@@ -45,5 +45,7 @@ You can combine three or more gems into special gems with cool abilites.
 * introduce rarity system  
   
 ## KNOWN BUGS
+* beating the last level crashes the game
+* sometimes, shots get caught and the projectile isn't destroyed
 * gem combining crashes after first placement phase
 * white primitive gems are partly transparent

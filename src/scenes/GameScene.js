@@ -18,6 +18,7 @@ export default class GameScene extends Phaser.Scene {
 		this.gameUI = new GameUI(this);
 
 		// add scene background
+		this.add.image(640, 480, 'backdrop');
 		this.add.image(640, 480, 'map');
 		// this.add.image(640, 480, 'grid');
 
@@ -66,23 +67,13 @@ export default class GameScene extends Phaser.Scene {
 		this.remainingPlacements = 0;
 		this.lives = 0;
 		this.gold = 0;
+		
+		// Create an instance of the A* pathfinding algorithm and add the spawn point and checkpoints
+		this.astar = new AStar(this.mapGrid);
 
 		this.gameUI.setup();
 		this.setupLevel(this.currentLevel);
 
-		// Create an instance of the A* pathfinding algorithm and add the spawn point and checkpoints
-		this.astar = new AStar(this.mapGrid);
-		this.startNode = this.astar.nodes[0][6];
-		this.checkpointsList = [
-			this.astar.nodes[10][6],
-			this.astar.nodes[10][15],
-			this.astar.nodes[20][15],
-			this.astar.nodes[30][15],
-			this.astar.nodes[30][6],
-			this.astar.nodes[20][6],
-			this.astar.nodes[20][22],
-			this.astar.nodes[39][22]
-		];
 	}
 
 	startPlacementPhase() {
@@ -111,6 +102,19 @@ export default class GameScene extends Phaser.Scene {
 		// Update amount of lives
 		this.lives = levelData.lives;
 		this.gameUI.updateHpText(this.lives);
+
+		// Update this to use map data dynamically
+		this.startNode = this.astar.nodes[0][6];
+		this.checkpointsList = [
+			this.astar.nodes[10][6],
+			this.astar.nodes[10][15],
+			this.astar.nodes[20][15],
+			this.astar.nodes[30][15],
+			this.astar.nodes[30][6],
+			this.astar.nodes[20][6],
+			this.astar.nodes[20][22],
+			this.astar.nodes[39][22]
+		];
 	}
 
 	startLevel(levelIndex) {
@@ -153,7 +157,8 @@ export default class GameScene extends Phaser.Scene {
 				this.enemies.forEach(enemy => {
 					if (projectile.target === enemy) {
 						// Only handle the hit if it was the intended target
-						if (!enemy.isHandledForDeath && Phaser.Geom.Intersects.RectangleToRectangle(projectile.getBounds(), enemy.getBounds())) {
+						if (!enemy.isHandledForDeath && 
+							Phaser.Geom.Intersects.RectangleToRectangle(projectile.getBounds(), enemy.getBounds())) {
 							this.handleProjectileHit(projectile, enemy);
 						}
 					}
@@ -175,11 +180,6 @@ export default class GameScene extends Phaser.Scene {
 	    if (this.isPlacementPhase && x <= 1280) {
 	        this.placeRandomGem(x, y);
 	    }
-		/* let cleanedCoords = this.centerGridCoords(x, y);
-		if (this.isPlacementPhase && this.mapGrid[cleanedCoords[0]/this.GRID_SIZE][cleanedCoords[1]/this.GRID_SIZE] == 0) {
-            // Hide the preview sprite when a gem is placed
-            this.gemPreview.setVisible(false);
-        } */
 	}
 
 	placeRandomGem(x, y) {
@@ -277,7 +277,6 @@ export default class GameScene extends Phaser.Scene {
 		}
 
 		// When combining two duplicates
-		console.log(`Combining gems from rarity ${this.selectedGem.rarity} and color ${this.selectedGem.color}`);
 		if (duplicateGems.length >= 1 && duplicateGems.length < 3) {
 			let newGem = new Gem(
 				this, this.selectedGem.x, this.selectedGem.y, this.selectedGem.rarity + 1, this.selectedGem.colorIndex);
@@ -414,14 +413,18 @@ export default class GameScene extends Phaser.Scene {
 	}
 
 	handleProjectileHit(projectile, enemy) {
+		// All projectiles that targetted the enemy get cleaned up
+		this.projectiles.forEach(proj => {
+			if (proj.target === enemy) {
+				proj.destroy();
+			}
+		});
 		// Enemy takes damage
 		enemy.takeDamage(projectile.damage);
 		if (enemy.currentHealth <= 0) {
 			// Enemy gets handled for death if HP is at or below 0
 			this.handleEnemyDeath(enemy);
 		}
-		// Projectile gets cleaned up
-		projectile.destroy();
 	}
 
 	removeEnemy(enemy) {
@@ -484,8 +487,7 @@ export default class GameScene extends Phaser.Scene {
 				}
 			}
 		});
-		console.log(`Found ${duplicateGems.length} duplicates for selected gem.`);
-
+		
 		return duplicateGems;
 	}
 
