@@ -182,53 +182,53 @@ export default class GameScene extends Phaser.Scene {
         } */
 	}
 
-	placeRandomGem (x, y) {
-		if (!this.isPlacementPhase) {
-			// If the game is not in a placement phase, don't do anything
+	placeRandomGem(x, y) {
+		if (!this.isPlacementPhase || this.remainingPlacements <= 0) {
+			console.log("Cannot place gem: Not in placement phase or no placements remaining");
 			return;
 		}
+	
 		let cleanedCoords = this.centerGridCoords(x, y);
-		console.log(`trying to place at ${cleanedCoords[0]/this.GRID_SIZE},${cleanedCoords[1]/this.GRID_SIZE}`);
-		// if the clicked tile is empty
-
-		if (this.remainingPlacements > 0) {
-			if (this.mapGrid[cleanedCoords[0]/this.GRID_SIZE][cleanedCoords[1]/this.GRID_SIZE] == 0) {
-				// Randomize rarity based on current chances
-				let rarity = this.getRandomRarity(this.gemChances);
-
-				// Randomize gem color indepently of rarity
-				let colorIndex = Math.floor(Math.random() * 7);
-
-				// Create a new gem
-				let gem = new Gem(this, cleanedCoords[0], cleanedCoords[1], rarity, colorIndex);
-				console.log(`Placed ${this.gemTiers[gem.rarity].toLowerCase()} ${gem.color} gem with range ${gem.range}, dmg ${gem.damage} and AS delay ${gem.attackSpeed}`);
-				this.gems.push(gem);
-				this.currentPhaseGems.push(gem);
-
-				// Mark the grid node as occupied
-				this.mapGrid[cleanedCoords[0]/this.GRID_SIZE][cleanedCoords[1]/this.GRID_SIZE] = "1";
-				this.astar.nodes[cleanedCoords[0]/this.GRID_SIZE][cleanedCoords[1]/this.GRID_SIZE].wall = true;
-
-				// Update remaining placements
-				this.remainingPlacements--;
-				if (this.remainingPlacements == 0) {
-					this.endPlacementPhase();
-				}
-			}
-			else {
-				if (this.mapGrid[cleanedCoords[0]/this.GRID_SIZE][cleanedCoords[1]/this.GRID_SIZE] == 'c') {
-					console.log("tile is a checkpoint.");
-				}
-				else {
-					console.log("tile already full");	
-				}
-			}
+		let gridX = cleanedCoords[0] / this.GRID_SIZE;
+		let gridY = cleanedCoords[1] / this.GRID_SIZE;
+	
+		if (this.mapGrid[gridX][gridY] !== 0) {
+			console.log("Cannot place gem: Tile is not empty");
+			return;
 		}
-		else {
-			console.log("maximum placements reached");
+	
+		// Temporarily mark the position as blocked
+		this.mapGrid[gridX][gridY] = '1';
+		this.astar.nodes[gridX][gridY].wall = true;
+	
+		// Check if there is still a valid path for each checkpoint
+		let pathBlocked = this.checkpointsList.some((checkpoint, index, checkpoints) => {
+			let startNode = index === 0 ? this.startNode : checkpoints[index - 1];
+			return !this.astar.findPath(startNode, checkpoint);
+		});
+	
+		// Revert the grid if path is blocked
+		if (pathBlocked) {
+			this.mapGrid[gridX][gridY] = '0';
+			this.astar.nodes[gridX][gridY].wall = false;
+			console.log("Cannot place gem: Path is blocked");
+			return;
 		}
-
+	
+		// Place the gem if the path is not blocked
+		let rarity = this.getRandomRarity(this.gemChances);
+		let colorIndex = Math.floor(Math.random() * 7);
+		let gem = new Gem(this, cleanedCoords[0], cleanedCoords[1], rarity, colorIndex);
+		this.gems.push(gem);
+		this.currentPhaseGems.push(gem);
+	
+		// Update remaining placements
+		this.remainingPlacements--;
+		if (this.remainingPlacements === 0) {
+			this.endPlacementPhase();
+		}
 	}
+	
 
 	getRandomRarity(chances) {
 		let sum = 0;
