@@ -1,3 +1,4 @@
+import GameUI from '../GameUI.js';
 import Projectile from '../objects/Projectile.js';
 import Gem from '../objects/Gem.js';
 import Enemy from '../objects/Enemy.js';
@@ -13,6 +14,8 @@ export default class GameScene extends Phaser.Scene {
 	}
 
 	create() {
+		this.gameUI = new GameUI(this);
+
 		// add scene background
 		this.add.image(640, 480, 'map');
 		this.add.image(640, 480, 'grid');
@@ -39,70 +42,6 @@ export default class GameScene extends Phaser.Scene {
 		// Initialize gem chances
 		this.gemChances = [0.8, 0.15, 0.05, 0, 0, 0, 0];
 
-
-		// TEXT & UI
-
-		// Create a 'start level' button
-		this.startButton = this.add.text(1300, 20, 'Start Level', 
-			{ font: '20px Arial', fill: '#0000FF' });
-		this.startButton.setInteractive();
-		this.startButton.on('pointerdown', () => {
-			this.startLevel(this.currentLevel);
-		});
-
-		// Create a 'start placement' button
-		this.placementButton = this.add.text(1300, 260, 'Start gem placement',
-			{ font: '18px Arial', fill: '#0000FF' });
-		this.placementButton.setInteractive();
-		this.placementButton.on('pointerdown', () => {
-			this.startPlacementPhase();
-		});
-
-		// Initialize gem chance text
-		this.add.text(1300, 50, 'Gem Chances:',
-			{ font: '18px Arial', fill: '#000000'});
-
-		this.gemTier0Text = this.add.text(1300, 75, `${this.gemTiers[0]}: ${this.gemChances[0]*100}%`,
-			{ font: '16px Arial', fill: '#000000' });
-
-		this.gemTier1Text = this.add.text(1300, 100, `${this.gemTiers[1]}: ${this.gemChances[1]*100}%`,
-			{ font: '16px Arial', fill: '#000000' });
-
-		this.gemTier2Text = this.add.text(1300, 125, `${this.gemTiers[2]}: ${this.gemChances[2]*100}%`,
-		{ font: '16px Arial', fill: '#000000' });
-
-		this.gemTier3Text = this.add.text(1300, 150, `${this.gemTiers[3]}: ${this.gemChances[3]*100}%`,
-			{ font: '16px Arial', fill: '#000000' });
-
-		this.gemTier4Text = this.add.text(1300, 175, `${this.gemTiers[4]}: ${this.gemChances[4]*100}%`,
-			{ font: '16px Arial', fill: '#000000' });
-
-		this.gemTier5Text = this.add.text(1300, 200, `${this.gemTiers[5]}: ${this.gemChances[5]*100}%`,
-		{ font: '16px Arial', fill: '#000000' });
-
-		this.gemTier6Text = this.add.text(1300, 225, `${this.gemTiers[6]}: ${this.gemChances[6]*100}%`,
-		{ font: '16px Arial', fill: '#000000' });
-
-		// Initialize keep gem button
-		this.keepGemButton = this.add.text(1300, 350, 'Keep Gem',
-			{ font: '18px Arial', fill: '#0000FF' });
-		this.keepGemButton.setInteractive();
-		this.keepGemButton.on('pointerdown', () => {
-			this.keepGem();
-		})
-
-		// Initialize HP text
-		this.hpText = this.add.text(1300, 375, 'Lives: 0',
-			{ font: '18px Arial', fill: '#000000' });
-
-		// Initialize embers text
-		this.goldText = this.add.text(1300, 400, 'Embers: 0',
-			{ font: '18px Arial', fill: '#000000' });
-
-		// Initialize text object for displaying gem information
-		this.gemInfoText = this.add.text(1300, 450, '',
-			{ font: '16px Arial', fill: '#000000' });
-
 		// Create a graphics object for drawing the range indicator
 		this.rangeIndicator = this.add.graphics({ lineStyle: { width: 2, color: 0x00ff00 } });
 
@@ -123,6 +62,7 @@ export default class GameScene extends Phaser.Scene {
 		this.lives = 0;
 		this.gold = 0;
 
+		this.gameUI.setup();
 		this.setupLevel(this.currentLevel);
 
 		// Create an instance of the A* pathfinding algorithm and add the spawn point and checkpoints
@@ -164,7 +104,7 @@ export default class GameScene extends Phaser.Scene {
 
 		// Update amount of lives
 		this.lives = levelData.lives;
-		this.hpText.setText(`Lives: ${this.lives}`);
+		this.gameUI.updateHpText(this.lives);
 	}
 
 	startLevel(levelIndex) {
@@ -455,11 +395,11 @@ export default class GameScene extends Phaser.Scene {
 		console.log(`Enemy at ${Math.floor(enemy.x/32)}, ${Math.floor(enemy.y/32)} has died.`);
 		// Add gold and update gold text
 		this.gold += enemy.goldValue;
-		this.goldText.setText(`Embers: ${this.gold}`);
-		enemy.destroy();
+		this.gameUI.updateGoldText(this.gold);
 
 		// Remove the dead enemy from the scene's enemies array
 		this.removeEnemy(enemy);
+		enemy.destroy();
 
 		// Clears the target for all gems targeting it
 		this.gems.forEach(gem => {
@@ -479,8 +419,7 @@ export default class GameScene extends Phaser.Scene {
 	handleGemClick(gem) {
 		this.selectedGem = gem;
 		// Update the gem info text in the reserved UI space
-		const info = `${this.gemTiers[gem.rarity]} ${gem.color}\nDamage: ${gem.damage}\nRange: ${gem.range}\nAttack Speed: ${gem.attackSpeed}`;
-		this.gemInfoText.setText(info);
+		this.gameUI.updateGemInfoText(gem);
 
 		// Draw a circle indicating gem range
 		this.rangeIndicator.clear();
