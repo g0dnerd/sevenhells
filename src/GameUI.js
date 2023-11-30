@@ -15,7 +15,7 @@ export default class GameUI {
         this.startButton = this.scene.add.text(1300, 10, 'Start Level', 
             { font: '20px Arial', fill: '#0000FF', backgroundColor: '#FFFFFF', padding: { left: 5, right: 5, top: 5, bottom: 5 } })
             .setInteractive()
-            .on('pointerdown', () => this.scene.startLevel(this.scene.currentLevel))
+            .on('pointerdown', () => this.scene.startWave())
             .on('pointerover', () => this.startButton.setStyle({ fill: '#FF0000' }))
             .on('pointerout', () => this.startButton.setStyle({ fill: '#0000FF' }));
     }

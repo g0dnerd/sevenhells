@@ -2,8 +2,34 @@
   {
     "levelNumber": 1,
     "map": "map1",
-    "enemies": [
-      { "type": "basic_human", "amount": 5 }
+    "waves": [
+      {
+        "waveNumber": 1,
+        "enemies": [
+          {
+            "type": "basic_human",
+            "amount": 5
+          }
+        ]
+      },
+      {
+        "waveNumber": 2,
+        "enemies": [
+          {
+            "type": "basic_human",
+            "amount": 10
+          }
+        ]
+      },
+      {
+        "waveNumber": 3,
+        "enemies": [
+          {
+            "type": "basic_human",
+            "amount": 20
+          }
+        ]
+      }
     ],
     "placements_per_phase": 5,
     "lives": 10
@@ -12,7 +38,10 @@
     "levelNumber": 2,
     "map": "map2",
     "enemies": [
-      { "type": "basic_human", "amount": 10 }
+      {
+        "type": "basic_human",
+        "amount": 10
+      }
     ],
     "placements_per_phase": 5,
     "lives": 800

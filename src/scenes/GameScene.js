@@ -23,6 +23,7 @@ export default class GameScene extends Phaser.Scene {
 		// this.add.image(640, 480, 'grid');
 
 		this.currentLevel = 1;
+		this.currentWave = 0;
 
 		// Initialize an empty grid
 		this.GRID_SIZE = 32;
@@ -49,6 +50,8 @@ export default class GameScene extends Phaser.Scene {
 		this.rangeIndicator = this.add.graphics({ lineStyle: { width: 2, color: 0x00ff00 } });
 
 		this.levelsData = this.cache.json.get('levels');
+		this.waveData = null;
+		this.levelData = null;
 		this.mapsData = this.cache.json.get('maps');
 
 		this.gemPreview = this.add.sprite(0, 0, 'gem_hover').setVisible(false);
@@ -83,11 +86,11 @@ export default class GameScene extends Phaser.Scene {
 
 	setupLevel(levelIndex) {
 
-		let levelData = this.levelsData.find(level => level.levelNumber === levelIndex);
-		let mapIndex = levelData.map;
+		this.levelData = this.levelsData.find(level => level.levelNumber === levelIndex);
+		let mapIndex = this.levelData.map;
 		let mapData = this.mapsData.find(map => map.mapName === mapIndex);
 
-		if (levelData && mapData) {
+		if (this.levelData && mapData) {
 			// Mark visual checkpoints as blocked squares in the map grid
 			// so that player can't place on checkpoints
 			mapData.checkpoints_visual.forEach(checkpoint => {
@@ -96,11 +99,12 @@ export default class GameScene extends Phaser.Scene {
 		}
 
 		// Update the amount of allowed gem placements
-		this.placementsPerPhase = levelData.placements_per_phase;
+		this.placementsPerPhase = this.levelData.placements_per_phase;
 		this.remainingPlacements = this.placementsPerPhase;
+		this.currentPhaseGems = [];
 
 		// Update amount of lives
-		this.lives = levelData.lives;
+		this.lives = this.levelData.lives;
 		this.gameUI.updateHpText(this.lives);
 
 		// Update this to use map data dynamically
@@ -117,16 +121,22 @@ export default class GameScene extends Phaser.Scene {
 		];
 	}
 
-	startLevel(levelIndex) {
-		// Once a wave starts, disable placement phase
+	setupWave() {
 		this.isPlacementPhase = false;
+		this.remainingPlacements = this.placementsPerPhase;
+		this.currentPhaseGems = [];
+	}
 
-		let levelData = this.levelsData.find(level => level.levelNumber === levelIndex);
-		if (levelData) {
-			// this.loadMap(levelData.map);
-			this.spawnEnemies(levelData.enemies);
+	startWave() {
+		this.setupWave();
+		if (this.levelData && this.currentWave < this.levelData.waves.length) {
+			this.waveData = this.levelData.waves[this.currentWave];
+			this.spawnEnemies(this.waveData.enemies);
+			// Additional logic for starting a wave
+		} else {
+			console.error("Wave data not found for wave index", this.currentWave);
+			// Handle wave not found scenario
 		}
-
 	}
 
 	update() {
@@ -259,44 +269,41 @@ export default class GameScene extends Phaser.Scene {
 		// Iterate over the array backwards so that splicing doesn't affect the array
 		// while working on it
 		for (let i = this.currentPhaseGems.length - 1; i >= 0; i--) {
-			const gem = this.currentPhaseGems[i];
-			if (gem !== this.selectedGem) {
-				gem.turnToStone();
-				this.currentPhaseGems.splice(i, 1);
+			const indexedGem = this.currentPhaseGems[i];
+			if (indexedGem !== this.selectedGem) {
+				// console.log(`Trying to turn a ${this.gemTiers[gem.rarity]} ${gem.color} to stone.`);
+				indexedGem.turnToStone();
 			}
 		}
 		this.currentPhaseGems = [];
 	}
 
 	combineGems() {
+		/* console.log("Combine gems called, printing all gems");
+		this.printAllGems();
+		console.log("Printing all current phase gems");
+		this.printCurrentPhaseGems();*/ 
 		// Only work if the currently selected gem has a duplicate
 		// from the current placement phase
-		let duplicateGems = this.checkForDuplicates(this.selectedGem);
+		let duplicateGems = this.getDuplicateGems(this.selectedGem);
 		if (duplicateGems.length === 0) {
 			return;
 		}
 
 		// When combining two duplicates
-		if (duplicateGems.length >= 1 && duplicateGems.length < 3) {
+		if (duplicateGems.length === 1 || duplicateGems.length === 2) {
 			let newGem = new Gem(
 				this, this.selectedGem.x, this.selectedGem.y, this.selectedGem.rarity + 1, this.selectedGem.colorIndex);
 			this.gems.push(newGem);
-			this.currentPhaseGems.push(newGem);
-			const index = this.gems.indexOf(this.selectedGem);
-			if (index !== -1) {
-				this.gems.splice(index, 1);
-				this.currentPhaseGems.splice(index, 1);
-			}
+			// this.currentPhaseGems.push(newGem);
 			this.selectedGem.destroy();
 			this.handleGemClick(newGem);
+			this.printAllGemSceneReferences();
+			// console.log(`Calling keep gem while combining with ${this.currentPhaseGems.length} current phase gems`);
 			this.keepGem();
 		}
 		
 		
-	}
-
-	onStartLevelClicked() {
-		this.isPlacementPhase = false;
 	}
 
 	completeLevel() {
@@ -304,8 +311,16 @@ export default class GameScene extends Phaser.Scene {
 		this.setupLevel(this.currentLevel);
 	}
 
+	completeWave() {
+		this.printAllGemSceneReferences();
+		this.currentWave++;
+		if (this.currentWave >= this.levelData.waves.length) {
+			this.completeLevel();
+		}
+		this.setupWave();
+	}
+
 	sendOnPath (enemy, astar, checkpoints) {
-		// console.log('Current checkpoints list:', checkpoints.map(cp => `(${cp.x},${cp.y})`).join(', '));
 		// check if there are no checkpoints left to process
 		if (checkpoints.length === 0) {
 			console.log('All checkpoints reached.');
@@ -315,13 +330,10 @@ export default class GameScene extends Phaser.Scene {
 
 		// Get the next checkpoint to move to
 		const nextCheckpoint = checkpoints[0];
-		// console.log('Moving to next checkpoint:', nextCheckpoint);
-		// console.log(`Enemy current node: x:${enemy.currentNode.x}, y:${enemy.currentNode.y}`);
 
 		// Find the path to the next checkpoint
 		const path = astar.findPath(enemy.currentNode, nextCheckpoint);
-		// console.log('Generated path to next checkpoint:', path.map(node => `(${node.x},${node.y})`).join(', '));
-
+		
 		// If a path is found, move the enemy along it 
 		if (path && path.length > 0) {
 			
@@ -433,8 +445,6 @@ export default class GameScene extends Phaser.Scene {
 		if (index !== -1) {
 			this.enemies.splice(index, 1);
 		}
-
-		console.log(`Enemy removed. ${this.enemies.length} enemies remain on the map.`);
 	}
 
 	handleEnemyDeath(enemy) {
@@ -442,8 +452,7 @@ export default class GameScene extends Phaser.Scene {
 		this.gold += enemy.goldValue;
 		this.gameUI.updateGoldText(this.gold);
 
-		console.log(`Enemy at ${Math.floor(enemy.x/this.GRID_SIZE)}, 
-		${Math.floor(enemy.y/this.GRID_SIZE)} has died. Adding ${enemy.goldValue} gold.`);
+		console.log(`Enemy at ${Math.floor(enemy.x/this.GRID_SIZE)}, ${Math.floor(enemy.y/this.GRID_SIZE)} has died. Adding ${enemy.goldValue} gold.`);
 
 		// Remove the dead enemy from the scene's enemies array
 		this.removeEnemy(enemy);
@@ -460,7 +469,7 @@ export default class GameScene extends Phaser.Scene {
 		// If there are no more enemies on the map, complete the level
 		if (this.enemies.length === 0) {
 			console.log("Level completed successfully.");
-			this.completeLevel();
+			this.completeWave();
 		}
 	}
 
@@ -474,11 +483,11 @@ export default class GameScene extends Phaser.Scene {
 		this.rangeIndicator.strokeCircle(gem.x + 16, gem.y + 16, gem.range);
 
 		// Check if the clicked gem has duplicates and set the button to active if so
-		let duplicateGems = this.checkForDuplicates(gem);
+		let duplicateGems = this.getDuplicateGems(gem);
 		this.gameUI.setCombineButtonActive(duplicateGems.length > 0);
 	}
 
-	checkForDuplicates(selectedGem) {
+	getDuplicateGems(selectedGem) {
 		// Returns the amount of duplicates the currently selected gem has
 		// in the current placement phase
 		let duplicateGems = [];
@@ -495,8 +504,10 @@ export default class GameScene extends Phaser.Scene {
 
 	removeGem(gem) {
 		const index = this.gems.indexOf(gem);
+		const phaseIndex = this.currentPhaseGems.indexOf(gem);
 		if (index !== -1) {
 			this.gems.splice(index, 1);
+			this.currentPhaseGems.splice(phaseIndex, 1);
 		}
 	}
 
@@ -527,5 +538,23 @@ export default class GameScene extends Phaser.Scene {
 		this.isPlacementPhase = false;
 		this.input.off('pointermove', this.updateGemPreview, this);
 		this.gemPreview.setVisible(false);
+	}
+
+	printAllGems() {
+		this.gems.forEach(gem => {
+			console.log(`There is a ${this.gemTiers[gem.rarity]} ${gem.color} at ${gem.x/this.GRID_SIZE}, ${gem.y/this.GRID_SIZE}`);
+		});
+	}
+
+	printCurrentPhaseGems() {
+		this.currentPhaseGems.forEach(gem => {
+			console.log(`There is a ${this.gemTiers[gem.rarity]} ${gem.color} at ${gem.x/this.GRID_SIZE}, ${gem.y/this.GRID_SIZE}`);
+		})
+	}
+
+	printAllGemSceneReferences() {
+		this.gems.forEach(gem => {
+			console.log(`Gem at ${gem.x/this.GRID_SIZE}, ${gem.y/this.GRID_SIZE} has reference to GameScene of type ${typeof gem.scene}`);
+		});
 	}
 }
