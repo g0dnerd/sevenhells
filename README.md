@@ -24,15 +24,24 @@ You can combine three or more gems into special gems with cool abilites.
 * Diabolical (Mythic)  
 
 ## TODOs
-* Refactor Enemy.moveAlongPath()
-* Refactor static value calculation from switch cases to config or lookup table
-* Error handling
+### TECHNICAL TODOS
 * Special gems
-* Differentiate between waves & levels
 * Handle Player death & level completion  
-* Disallow gem placements that block the only path 
+* Refactor Enemy.moveAlongPath()
+* Error handling  
+  
+### ART TODOS
+* new enemy sprites
+* fix visibility for gems
+* rework path tiles
+* rework checkpoint sprite
+* UI background image
+* music & sounds
 
 ### DONE
+* Disallow gem placements that block the only path
+* Differentiate between waves & levels
+* Refactor static value calculation from switch cases to config or lookup table
 * Gem hover effect while in placement effect. Grid removed.
 * Combining gems
 * simple, but robust A* implementation using a list of checkpoints
@@ -47,5 +56,4 @@ You can combine three or more gems into special gems with cool abilites.
 ## KNOWN BUGS
 * beating the last level crashes the game
 * sometimes, shots get caught and the projectile isn't destroyed
-* gem combining crashes after first placement phase
 * white primitive gems are partly transparent
