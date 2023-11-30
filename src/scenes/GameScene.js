@@ -20,7 +20,6 @@ export default class GameScene extends Phaser.Scene {
 		// add scene background
 		this.add.image(640, 480, 'backdrop');
 		this.add.image(640, 480, 'map');
-		// this.add.image(640, 480, 'grid');
 
 		this.currentLevel = 1;
 		this.currentWave = 0;
@@ -271,7 +270,6 @@ export default class GameScene extends Phaser.Scene {
 		for (let i = this.currentPhaseGems.length - 1; i >= 0; i--) {
 			const indexedGem = this.currentPhaseGems[i];
 			if (indexedGem !== this.selectedGem) {
-				// console.log(`Trying to turn a ${this.gemTiers[gem.rarity]} ${gem.color} to stone.`);
 				indexedGem.turnToStone();
 			}
 		}
@@ -279,10 +277,6 @@ export default class GameScene extends Phaser.Scene {
 	}
 
 	combineGems() {
-		/* console.log("Combine gems called, printing all gems");
-		this.printAllGems();
-		console.log("Printing all current phase gems");
-		this.printCurrentPhaseGems();*/ 
 		// Only work if the currently selected gem has a duplicate
 		// from the current placement phase
 		let duplicateGems = this.getDuplicateGems(this.selectedGem);
@@ -295,11 +289,9 @@ export default class GameScene extends Phaser.Scene {
 			let newGem = new Gem(
 				this, this.selectedGem.x, this.selectedGem.y, this.selectedGem.rarity + 1, this.selectedGem.colorIndex);
 			this.gems.push(newGem);
-			// this.currentPhaseGems.push(newGem);
 			this.selectedGem.destroy();
 			this.handleGemClick(newGem);
 			this.printAllGemSceneReferences();
-			// console.log(`Calling keep gem while combining with ${this.currentPhaseGems.length} current phase gems`);
 			this.keepGem();
 		}
 		
@@ -352,14 +344,11 @@ export default class GameScene extends Phaser.Scene {
 	spawnEnemies (enemies, currentIndex = 0, enemyCount = 0) {
 		if (currentIndex >= enemies.length) {
 			// Stop if there are no more enemies to spawn
-			// console.log(`No more enemies to spawn.`);
 			return;
 		}
 
 		// Get the current enemy's data
 		const enemyData = enemies[currentIndex];
-
-		// console.log(`spawnEnemies called, ${enemyData.amount} to spawn.`);
 
 	    if (enemyCount < enemyData.amount) {
 	        // Spawn one enemy and increase the count
@@ -379,7 +368,6 @@ export default class GameScene extends Phaser.Scene {
 	}
 
 	spawnEnemy (type, x, y) {
-		// console.log(`Spawning enemy of type ${type} at (${x},${y})`);
 		let enemy = new Enemy(this, x*this.GRID_SIZE, y*this.GRID_SIZE, this.checkpointsList);
 		this.enemies.push(enemy);
 
@@ -466,9 +454,9 @@ export default class GameScene extends Phaser.Scene {
 			}
 		});
 
-		// If there are no more enemies on the map, complete the level
+		// If there are no more enemies on the map, complete the wave
 		if (this.enemies.length === 0) {
-			console.log("Level completed successfully.");
+			console.log("Wave completed successfully.");
 			this.completeWave();
 		}
 	}
@@ -540,6 +528,7 @@ export default class GameScene extends Phaser.Scene {
 		this.gemPreview.setVisible(false);
 	}
 
+	/* DEBUG METHODS
 	printAllGems() {
 		this.gems.forEach(gem => {
 			console.log(`There is a ${this.gemTiers[gem.rarity]} ${gem.color} at ${gem.x/this.GRID_SIZE}, ${gem.y/this.GRID_SIZE}`);
@@ -556,5 +545,5 @@ export default class GameScene extends Phaser.Scene {
 		this.gems.forEach(gem => {
 			console.log(`Gem at ${gem.x/this.GRID_SIZE}, ${gem.y/this.GRID_SIZE} has reference to GameScene of type ${typeof gem.scene}`);
 		});
-	}
+	} */
 }

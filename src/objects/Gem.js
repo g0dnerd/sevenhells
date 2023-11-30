@@ -38,8 +38,6 @@ export default class Gem extends Phaser.GameObjects.Sprite {
 	}
 
 	turnToStone() {
-		// console.log(`Attempting to turn to stone ${this.rarity} ${this.color} at ${this.x/32}, ${this.y/32}`);
-		console.log(`Turn to stone at ${this.x/32}, ${this.y/32} has reference to scene as ${typeof this.scene}`);
 		const stone = new Stone(this.scene, this.x, this.y);
 		this.scene.stones.push(stone);
 		this.destroy();
