@@ -26,8 +26,8 @@ You can combine three or more gems into special gems with cool abilites.
 ## TODOs
 ### TECHNICAL TODOS
 * Gem chance upgrades
-* Tower XP tracking
-* Tower downgrading
+* Gem color abilities
+* Gem downgrading
 * Special gems
 * Handle Player death & level completion  
 * Refactor Enemy.moveAlongPath()
@@ -41,7 +41,12 @@ You can combine three or more gems into special gems with cool abilites.
 * UI background image
 * music & sounds
 
+### OTHER TODOS
+* initial damage & health balancing
+
 ### DONE
+* Gem XP & levels
+* enemy movement speed
 * Disallow gem placements that block the only path
 * Differentiate between waves & levels
 * Refactor static value calculation from switch cases to config or lookup table

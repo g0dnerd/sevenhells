@@ -99,7 +99,7 @@ export default class GameUI {
 
     updateGemInfoText(gem) {
         // Update gem information text
-		const info = `${this.scene.gemTiers[gem.rarity]} ${gem.color}\nDamage: ${gem.damage}\nRange: ${gem.range}\nAttack Speed: ${gem.attackSpeed}`;
+		const info = `${this.scene.gemTiers[gem.rarity]} ${gem.color}\nDamage: ${gem.damage}\nRange: ${gem.range}\nAttack Speed: ${gem.attackSpeed}\nLevel: ${gem.level}\nExperience: ${gem.experience}`;
 		this.gemInfoText.setText(info);
     }
 

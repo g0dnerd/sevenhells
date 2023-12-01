@@ -1,5 +1,5 @@
 export default class Projectile extends Phaser.GameObjects.Sprite {
-	constructor(scene, x, y, target, damage) {
+	constructor(scene, x, y, target, damage, originGem) {
 		super(scene, x, y, 'projectile');
 
 		this.scene = scene;
@@ -15,6 +15,8 @@ export default class Projectile extends Phaser.GameObjects.Sprite {
 		// Add physics to the projectile
 		this.scene.physics.world.enable(this);
 		this.body.setCollideWorldBounds(true);
+
+		this.originGem = originGem;
 
 		this.speed = 300;
 		this.isDestroyed = false;

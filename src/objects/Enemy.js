@@ -6,6 +6,8 @@ export default class Enemy extends Phaser.GameObjects.Sprite {
 
         this.scene = scene;
 
+		this.id = id;
+
         scene.add.existing(this);
 
         // Set the origin to the center
@@ -14,6 +16,8 @@ export default class Enemy extends Phaser.GameObjects.Sprite {
         this.checkpoints = checkpoints;
         this.finalX = this.checkpoints[this.checkpoints.length - 1].x
         this.finalY = this.checkpoints[this.checkpoints.length - 1].y
+
+		this.movementSpeed = EnemyData.movementSpeed[this.id];
 
 		// Set various flags and parameters
 		this.progress = 0;
@@ -32,8 +36,7 @@ export default class Enemy extends Phaser.GameObjects.Sprite {
         this.currentNode = { x: Math.floor(x / 32), y: Math.floor(y / 32) };
 	}
 
-	moveAlongPath(path, speed = 300, onCompleteCallback) {
-	    // console.log('moveAlongPath called.');
+	moveAlongPath(path, onCompleteCallback) {
 
 	    // Ensure there is a path to follow
 	    if (!path || path.length === 0) {
@@ -44,8 +47,8 @@ export default class Enemy extends Phaser.GameObjects.Sprite {
 	    // Extract the first node from the path to avoid altering the original path array
 	    let nextNode = path[0];
 
-	    let distance = Phaser.Math.Distance.Between(this.x, this.y, nextNode.x * this.scene.gridSize, nextNode.y * this.scene.gridSize);
-	    let duration = (distance / speed) * 1000;
+	    let distance = Phaser.Math.Distance.Between(this.x, this.y, nextNode.x * this.scene.GRID_SIZE, nextNode.y * this.scene.GRID_SIZE);
+	    let duration = (distance / this.movementSpeed) * 1000;
 
 	    // Determine the direction
 		let xDirection = nextNode.x*32 - this.x;
@@ -71,11 +74,11 @@ export default class Enemy extends Phaser.GameObjects.Sprite {
 	    let pixelY = nextNode.y * 32;
 
 	    // Set up the tween animation
-	    let tween = this.scene.tweens.add({
+	    this.scene.tweens.add({
 	        targets: this,
 	        x: pixelX,
 	        y: pixelY,
-	        duration: speed,
+	        duration: duration,
 	        ease: 'Linear',
 	        onComplete: () => {
 	        	// Check if the object still exists
@@ -102,7 +105,7 @@ export default class Enemy extends Phaser.GameObjects.Sprite {
 	                }
 	            } else {
 	                // If there are more nodes, continue moving along the path
-	                this.moveAlongPath(path, speed, onCompleteCallback);
+	                this.moveAlongPath(path, onCompleteCallback);
 	            }
 	        }
 	    });

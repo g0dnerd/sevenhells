@@ -19,11 +19,14 @@ export default class Gem extends Phaser.GameObjects.Sprite {
 		this.nextShotTime = -1;
 		this.shotsFired = 0;
 
+		this.experience = 0;
+		this.level = 0;
+
 		this.projectiles = [];
 
-		this.range = GemData.calculateRange(rarity, colorIndex);
-		this.damage = GemData.calculateRange(rarity, colorIndex);
-		this.attackSpeed = GemData.calculateAttackSpeed(rarity, colorIndex);
+		this.range = GemData.calculateRange(rarity, colorIndex, this.level);
+		this.damage = GemData.calculateRange(rarity, colorIndex, this.level);
+		this.attackSpeed = GemData.calculateAttackSpeed(rarity, colorIndex, this.level);
 
 		scene.add.existing(this);
 
@@ -50,7 +53,7 @@ export default class Gem extends Phaser.GameObjects.Sprite {
 		}
 
 		const projectile = new Projectile(
-			this.scene, this.x + 16, this.y + 16, this.target, this.damage);
+			this.scene, this.x + 16, this.y + 16, this.target, this.damage, this);
 		this.projectiles.push(projectile);
 		this.scene.projectileSprites.add(projectile);
 		this.scene.projectiles.push(projectile);
@@ -71,5 +74,23 @@ export default class Gem extends Phaser.GameObjects.Sprite {
 		this.clearTarget();
 		this.clearProjectiles();
 		super.destroy();
+	}
+
+	addExperience(amount) {
+		this.experience += amount;
+		this.scene.gameUI.updateGemInfoText(this);
+		if (this.experience >= GemData.levelUpThresholds[this.level]) {
+			this.levelUp();
+		}
+	}
+
+	levelUp() {
+		this.level++;
+		// Check for level ups again to cover the case
+		// where gem has gained a very large amount of XP for some reason
+		this.scene.gameUI.updateGemInfoText(this);
+		if (this.experience >= GemData.levelUpThresholds[this.level]) {
+			this.levelUp();
+		}
 	}
 }

@@ -14,4 +14,18 @@ export default class EnemyData {
     ];
  }
 
+ static get experienceValues() {
+    return [
+        10, // Basic Human
+        20 // Consultant
+    ];
+ }
+
+ static get movementSpeed() {
+    return [
+        70, // Basic Human
+        80 // Consultant
+    ];
+ }
+
 }

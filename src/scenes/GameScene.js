@@ -3,6 +3,7 @@ import Projectile from '../objects/Projectile.js';
 import Gem from '../objects/Gem.js';
 import Enemy from '../objects/Enemy.js';
 import AStar from '../astar.js';
+import EnemyData from '../data/EnemyData.js';
 
 export default class GameScene extends Phaser.Scene {
 	constructor() {
@@ -291,10 +292,8 @@ export default class GameScene extends Phaser.Scene {
 			this.gems.push(newGem);
 			this.selectedGem.destroy();
 			this.handleGemClick(newGem);
-			this.printAllGemSceneReferences();
 			this.keepGem();
 		}
-		
 		
 	}
 
@@ -304,7 +303,6 @@ export default class GameScene extends Phaser.Scene {
 	}
 
 	completeWave() {
-		this.printAllGemSceneReferences();
 		this.currentWave++;
 		if (this.currentWave >= this.levelData.waves.length) {
 			this.completeLevel();
@@ -329,7 +327,7 @@ export default class GameScene extends Phaser.Scene {
 		// If a path is found, move the enemy along it 
 		if (path && path.length > 0) {
 			
-			enemy.moveAlongPath(path, 300, () => {
+			enemy.moveAlongPath(path, () => {
 				// After reaching the next checkpoint, remove it from the list
 				// and continue
 				checkpoints.shift();
@@ -422,6 +420,8 @@ export default class GameScene extends Phaser.Scene {
 		// Enemy takes damage
 		enemy.takeDamage(projectile.damage);
 		if (enemy.currentHealth <= 0) {
+			// XP gets added for the gem that landed the fatal hit
+			projectile.originGem.addExperience(EnemyData.experienceValues[enemy.id]);
 			// Enemy gets handled for death if HP is at or below 0
 			this.handleEnemyDeath(enemy);
 		}
