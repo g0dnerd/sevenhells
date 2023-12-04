@@ -48,6 +48,24 @@ export default class GemData {
         ]
     };
 
+    static get gemChanceTiers() {
+        return[
+            [1, 0, 0, 0, 0, 0, 0],
+            [0.7, 0.3, 0, 0, 0, 0, 0],
+            [0.6, 0.3, 0.1, 0, 0, 0, 0],
+            [0.5, 0.3, 0.2, 0, 0, 0, 0],
+            [0.4, 0.3, 0.2, 0.1, 0, 0, 0],
+            [0.3, 0.3, 0.3, 0.1, 0, 0, 0],
+            [0.2, 0.3, 0,3, 0.2, 0, 0, 0],
+            [0.1, 0.3, 0.3, 0.3, 0, 0, 0],
+            [0, 0.3, 0.3, 0.3, 0.1, 0, 0]
+        ]
+    };
+
+    static ChanceTierUpgradeCosts(tier) {
+        return 20 + 30 * tier;
+    }
+
     static calculateDamage(rarity, colorIndex, level) {
         const base = GemData.baseDamage[colorIndex];
         if (base === undefined) {

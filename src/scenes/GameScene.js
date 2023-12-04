@@ -3,6 +3,7 @@ import Projectile from '../objects/Projectile.js';
 import Gem from '../objects/Gem.js';
 import Enemy from '../objects/Enemy.js';
 import AStar from '../astar.js';
+import GemData from '../data/GemData.js';
 import EnemyData from '../data/EnemyData.js';
 
 export default class GameScene extends Phaser.Scene {
@@ -44,7 +45,8 @@ export default class GameScene extends Phaser.Scene {
 		['Primitive', 'Fiery', 'Infernal', 'Hellforged', 'Demonic', 'Abyssal', 'Diabolical'];
 
 		// Initialize gem chances
-		this.gemChances = [0.8, 0.15, 0.05, 0, 0, 0, 0];
+		this.gemChances = [];
+		this.gemChanceTier = 0;
 
 		// Create a graphics object for drawing the range indicator
 		this.rangeIndicator = this.add.graphics({ lineStyle: { width: 2, color: 0x00ff00 } });
@@ -56,6 +58,8 @@ export default class GameScene extends Phaser.Scene {
 
 		this.gemPreview = this.add.sprite(0, 0, 'gem_hover').setVisible(false);
 		this.gemPreview.setOrigin(0, 0);
+
+		this.ENEMY_SPAWN_OFFSET = 800;
 
 		// Initialize game object arrays
 		this.gems = [];
@@ -106,6 +110,9 @@ export default class GameScene extends Phaser.Scene {
 		// Update amount of lives
 		this.lives = this.levelData.lives;
 		this.gameUI.updateHpText(this.lives);
+
+		this.gemChances = GemData.gemChanceTiers[this.gemChanceTier];
+		this.gameUI.updateGemChancesText();
 
 		// Update this to use map data dynamically
 		this.startNode = this.astar.nodes[0][6];
@@ -361,7 +368,7 @@ export default class GameScene extends Phaser.Scene {
 	    // Wait for 500 ms before spawning the next enemy
 	    setTimeout(() => {
 	        this.spawnEnemies(enemies, currentIndex, enemyCount);
-	    }, 500);
+	    }, this.ENEMY_SPAWN_OFFSET);
 
 	}
 
@@ -526,6 +533,18 @@ export default class GameScene extends Phaser.Scene {
 		this.isPlacementPhase = false;
 		this.input.off('pointermove', this.updateGemPreview, this);
 		this.gemPreview.setVisible(false);
+	}
+
+	upgradeChances() {
+		if (GemData.ChanceTierUpgradeCosts(this.gemChanceTier) > this.gold) {
+			return;
+		}
+		this.gold -= GemData.ChanceTierUpgradeCosts(this.gemChanceTier);
+		this.gameUI.updateGoldText(this.gold);
+		this.gemChanceTier++;
+		this.gemChances = GemData.gemChanceTiers[this.gemChanceTier];
+		this.gameUI.updateGemChancesText();
+		this.gameUI.updateChanceButtonPrice();
 	}
 
 	/* DEBUG METHODS

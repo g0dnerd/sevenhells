@@ -1,3 +1,5 @@
+import GemData from './data/GemData.js';
+
 export default class GameUI {
     constructor(scene) {
         this.scene = scene;
@@ -47,6 +49,15 @@ export default class GameUI {
             .on('pointerout', () => this.combineGemsButton.setStyle({ fill: this.combineTextColor }));
     }
 
+    createChanceUpgradeButton() {
+        this.ChanceUpgradeButton = this.scene.add.text(1300, 380, `Upgrade Chances (${GemData.ChanceTierUpgradeCosts(this.scene.gemChanceTier)})`,
+			{ font: '16px Arial', fill: '#0000FF', backgroundColor: '#FFFFFF', padding: { left: 5, right: 5, top: 5, bottom: 5 } })
+            .setInteractive()
+            .on('pointerdown', () => this.scene.upgradeChances())
+            .on('pointerover', () => this.ChanceUpgradeButton.setStyle({ fill: '#FF0000' }))
+            .on('pointerout', () => this.ChanceUpgradeButton.setStyle({ fill: '#0000FF' }));
+    }
+
     createGemChanceText() {
         // Initialize gem chance text
 		this.scene.add.text(1300, 50, 'Gem Chances:',
@@ -75,11 +86,11 @@ export default class GameUI {
     }
 
     createStatusTexts() {
-        this.hpText = this.scene.add.text(1300, 375, 'Lives: 0',
+        this.hpText = this.scene.add.text(1300, 420, 'Lives: 0',
         { font: '18px Arial', fill: '#000000' });
-        this.goldText = this.scene.add.text(1300, 400, 'Embers: 0',
+        this.goldText = this.scene.add.text(1300, 445, 'Embers: 0',
         { font: '18px Arial', fill: '#000000' });
-        this.gemInfoText = this.scene.add.text(1300, 450, '',
+        this.gemInfoText = this.scene.add.text(1300, 470, '',
         { font: '16px Arial', fill: '#000000' });
     }
 
@@ -88,8 +99,20 @@ export default class GameUI {
         this.hpText.setText(`Lives: ${lives}`);
     }
 
-    updateGemChancesText(chances) {
+    updateChanceButtonPrice() {
+        let price = GemData.ChanceTierUpgradeCosts(this.scene.gemChanceTier);
+        this.ChanceUpgradeButton.setText(`Upgrade Chances (${price})`);
+    }
+
+    updateGemChancesText() {
         // Update the text for gem chances
+        this.gemTier0Text.setText(`${this.scene.gemTiers[0]}: ${this.scene.gemChances[0]*100}%`);
+        this.gemTier1Text.setText(`${this.scene.gemTiers[1]}: ${this.scene.gemChances[1]*100}%`);
+        this.gemTier2Text.setText(`${this.scene.gemTiers[2]}: ${this.scene.gemChances[2]*100}%`);
+        this.gemTier3Text.setText(`${this.scene.gemTiers[3]}: ${this.scene.gemChances[3]*100}%`);
+        this.gemTier4Text.setText(`${this.scene.gemTiers[4]}: ${this.scene.gemChances[4]*100}%`);
+        this.gemTier5Text.setText(`${this.scene.gemTiers[5]}: ${this.scene.gemChances[5]*100}%`);
+        this.gemTier6Text.setText(`${this.scene.gemTiers[6]}: ${this.scene.gemChances[6]*100}%`);
     }
 
     updateGoldText(goldAmount) {
@@ -119,6 +142,7 @@ export default class GameUI {
         this.createPlacementButton();
         this.createKeepButton();
         this.createCombineButton();
+        this.createChanceUpgradeButton();
         this.createGemChanceText();
         this.createStatusTexts();
     }
