@@ -58,6 +58,15 @@ export default class GameUI {
             .on('pointerout', () => this.ChanceUpgradeButton.setStyle({ fill: '#0000FF' }));
     }
 
+    createDowngradeButton() {
+        this.DowngradeButton = this.scene.add.text(1300, 420, `Downgrade Gem`,
+        { font: '16px Arial', fill: '#0000FF', backgroundColor: '#FFFFFF', padding: { left: 5, right: 5, top: 5, bottom: 5 } })
+        .setInteractive()
+        .on('pointerdown', () => this.scene.downgradeGem())
+        .on('pointerover', () => this.DowngradeButton.setStyle({ fill: '#FF0000' }))
+        .on('pointerout', () => this.DowngradeButton.setStyle({ fill: '#0000FF' }));
+    }
+
     createGemChanceText() {
         // Initialize gem chance text
 		this.scene.add.text(1300, 50, 'Gem Chances:',
@@ -86,11 +95,11 @@ export default class GameUI {
     }
 
     createStatusTexts() {
-        this.hpText = this.scene.add.text(1300, 420, 'Lives: 0',
+        this.hpText = this.scene.add.text(1300, 460, 'Lives: 0',
         { font: '18px Arial', fill: '#000000' });
-        this.goldText = this.scene.add.text(1300, 445, 'Embers: 0',
+        this.goldText = this.scene.add.text(1300, 485, 'Embers: 0',
         { font: '18px Arial', fill: '#000000' });
-        this.gemInfoText = this.scene.add.text(1300, 470, '',
+        this.gemInfoText = this.scene.add.text(1300, 510, '',
         { font: '16px Arial', fill: '#000000' });
     }
 
@@ -142,6 +151,7 @@ export default class GameUI {
         this.createPlacementButton();
         this.createKeepButton();
         this.createCombineButton();
+        this.createDowngradeButton();
         this.createChanceUpgradeButton();
         this.createGemChanceText();
         this.createStatusTexts();

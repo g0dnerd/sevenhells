@@ -298,7 +298,7 @@ export default class GameScene extends Phaser.Scene {
 				this, this.selectedGem.x, this.selectedGem.y, this.selectedGem.rarity + 1, this.selectedGem.colorIndex);
 			this.gems.push(newGem);
 			this.selectedGem.destroy();
-			this.handleGemClick(newGem);
+			this.selectedGem = newGem;
 			this.keepGem();
 		}
 		
@@ -545,6 +545,18 @@ export default class GameScene extends Phaser.Scene {
 		this.gemChances = GemData.gemChanceTiers[this.gemChanceTier];
 		this.gameUI.updateGemChancesText();
 		this.gameUI.updateChanceButtonPrice();
+	}
+
+	downgradeGem() {
+		// Don't do anything if no gem is selected or if the selected gem
+		// is already at the lowest rarity tier
+		if (!this.selectedGem || this.selectedGem.rarity == 0) {
+			return;
+		}
+
+		let lowerGem = new Gem(this, this.selectedGem.x, this.selectedGem.y, this.selectedGem.rarity - 1, this.selectedGem.colorIndex);
+		this.removeGem(this.selectedGem);
+		this.handleGemClick(lowerGem);
 	}
 
 	/* DEBUG METHODS

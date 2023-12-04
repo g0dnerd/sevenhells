@@ -26,7 +26,6 @@ You can combine three or more gems into special gems with cool abilites.
 ## TODOs
 ### TECHNICAL TODOS
 * Gem color abilities
-* Gem downgrading
 * Special gems
 * Handle Player death & level completion  
 * Refactor Enemy.moveAlongPath()
@@ -44,6 +43,7 @@ You can combine three or more gems into special gems with cool abilites.
 * initial damage & health balancing
 
 ### DONE
+* Gem downgrading
 * Gem chance upgrades
 * Gem XP & levels
 * enemy movement speed
