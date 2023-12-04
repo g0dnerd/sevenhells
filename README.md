@@ -25,7 +25,6 @@ You can combine three or more gems into special gems with cool abilites.
 
 ## TODOs
 ### TECHNICAL TODOS
-* Gem chance upgrades
 * Gem color abilities
 * Gem downgrading
 * Special gems
@@ -45,6 +44,7 @@ You can combine three or more gems into special gems with cool abilites.
 * initial damage & health balancing
 
 ### DONE
+* Gem chance upgrades
 * Gem XP & levels
 * enemy movement speed
 * Disallow gem placements that block the only path
@@ -62,6 +62,7 @@ You can combine three or more gems into special gems with cool abilites.
 * introduce rarity system  
   
 ## KNOWN BUGS & ISSUES
+* enemies getting through crashes the game because its anims are no longer defined
 * beating the last level crashes the game
 * sometimes, shots get caught and the projectile isn't destroyed
 * white gems have poor visibility
