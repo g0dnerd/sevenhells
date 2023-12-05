@@ -30,6 +30,7 @@ export default class GameScene extends Phaser.Scene {
 		this.GRID_SIZE = 32;
 		this.mapGrid = Array(40).fill(0).map(() => Array(30).fill(0)); 
 
+		// Initialize a phaser sprite group for all projectiles
 		this.projectileSprites = this.physics.add.group({
 			classType: Projectile,
 			runChildUpdate: true
@@ -51,6 +52,7 @@ export default class GameScene extends Phaser.Scene {
 		// Create a graphics object for drawing the range indicator
 		this.rangeIndicator = this.add.graphics({ lineStyle: { width: 2, color: 0x00ff00 } });
 
+		// Initialize json objects
 		this.levelsData = this.cache.json.get('levels');
 		this.waveData = null;
 		this.levelData = null;
@@ -90,6 +92,7 @@ export default class GameScene extends Phaser.Scene {
 
 	setupLevel(levelIndex) {
 
+		// Pull level and map data from the json
 		this.levelData = this.levelsData.find(level => level.levelNumber === levelIndex);
 		let mapIndex = this.levelData.map;
 		let mapData = this.mapsData.find(map => map.mapName === mapIndex);
@@ -137,12 +140,13 @@ export default class GameScene extends Phaser.Scene {
 	startWave() {
 		this.setupWave();
 		if (this.levelData && this.currentWave < this.levelData.waves.length) {
+			// Pull wave data from level data
 			this.waveData = this.levelData.waves[this.currentWave];
+			// Pass enemy spawning to spawnEnemies
 			this.spawnEnemies(this.waveData.enemies);
-			// Additional logic for starting a wave
 		} else {
-			console.error("Wave data not found for wave index", this.currentWave);
 			// Handle wave not found scenario
+			console.error("Wave data not found for wave index", this.currentWave);
 		}
 	}
 
@@ -200,15 +204,19 @@ export default class GameScene extends Phaser.Scene {
 	}
 
 	placeRandomGem(x, y) {
+		// Bounce if the game is not in a placement phase or if
+		// there are no placements remaining
 		if (!this.isPlacementPhase || this.remainingPlacements <= 0) {
 			console.log("Cannot place gem: Not in placement phase or no placements remaining");
 			return;
 		}
 	
+		// Turn x/y coordinates into grid coordinates
 		let cleanedCoords = this.centerGridCoords(x, y);
 		let gridX = cleanedCoords[0] / this.GRID_SIZE;
 		let gridY = cleanedCoords[1] / this.GRID_SIZE;
 	
+		// Check if the desired tile is empty
 		if (this.mapGrid[gridX][gridY] !== 0) {
 			console.log("Cannot place gem: Tile is not empty");
 			return;
@@ -245,7 +253,6 @@ export default class GameScene extends Phaser.Scene {
 			this.endPlacementPhase();
 		}
 	}
-	
 
 	getRandomRarity(chances) {
 		let sum = 0;
@@ -292,7 +299,7 @@ export default class GameScene extends Phaser.Scene {
 			return;
 		}
 
-		// When combining two duplicates
+		// When combining two or three gems
 		if (duplicateGems.length === 1 || duplicateGems.length === 2) {
 			let newGem = new Gem(
 				this, this.selectedGem.x, this.selectedGem.y, this.selectedGem.rarity + 1, this.selectedGem.colorIndex);
@@ -300,6 +307,18 @@ export default class GameScene extends Phaser.Scene {
 			this.selectedGem.destroy();
 			this.selectedGem = newGem;
 			this.keepGem();
+		}
+
+		// When combining four or five gems
+		if (this.selectedGem.rarity < 5) {
+			if (duplicateGems.length === 3 || duplicateGems.length === 4) {
+				let newGem = new Gem(
+					this, this.selectedGem.x, this.selectedGem.y, this.selectedGem.rarity + 2, this.selectedGem.colorIndex);
+				this.gems.push(newGem);
+				this.selectedGem.destroy();
+				this.selectedGem = newGem;
+				this.keepGem();
+			}
 		}
 		
 	}
@@ -310,6 +329,9 @@ export default class GameScene extends Phaser.Scene {
 	}
 
 	completeWave() {
+		// To complete a wave, increment the current wave counter,
+		// and if it was the last wave, complete the level.
+		// Then, setup the next wave.
 		this.currentWave++;
 		if (this.currentWave >= this.levelData.waves.length) {
 			this.completeLevel();
@@ -479,7 +501,9 @@ export default class GameScene extends Phaser.Scene {
 
 		// Check if the clicked gem has duplicates and set the button to active if so
 		let duplicateGems = this.getDuplicateGems(gem);
-		this.gameUI.setCombineButtonActive(duplicateGems.length > 0);
+		if (gem.rarity < 6) {
+			this.gameUI.setCombineButtonActive(duplicateGems.length > 0);
+		}
 	}
 
 	getDuplicateGems(selectedGem) {
@@ -511,10 +535,16 @@ export default class GameScene extends Phaser.Scene {
 	}
 
 	updateGemPreview(pointer) {
+		// Shows the gem_hover sprite if in a placement phase and hovering
+		// over a valid placement tile
+
+		// Bounce if the pointer is outside of map bounds
 		if (pointer.x > 1280 || pointer.y > 960) {
 			this.gemPreview.setVisible(false);
 			return;
 		}
+
+		// Turn x/y coordinates into grid coordinates
         const [x, y] = this.centerGridCoords(pointer.x, pointer.y);
         const gridX = x / this.GRID_SIZE;
         const gridY = y / this.GRID_SIZE;
@@ -536,9 +566,11 @@ export default class GameScene extends Phaser.Scene {
 	}
 
 	upgradeChances() {
+		// Bounce if player does not have enough gold
 		if (GemData.ChanceTierUpgradeCosts(this.gemChanceTier) > this.gold) {
 			return;
 		}
+
 		this.gold -= GemData.ChanceTierUpgradeCosts(this.gemChanceTier);
 		this.gameUI.updateGoldText(this.gold);
 		this.gemChanceTier++;
@@ -548,7 +580,7 @@ export default class GameScene extends Phaser.Scene {
 	}
 
 	downgradeGem() {
-		// Don't do anything if no gem is selected or if the selected gem
+		// Bounce if no gem is selected or if the selected gem
 		// is already at the lowest rarity tier
 		if (!this.selectedGem || this.selectedGem.rarity == 0) {
 			return;
