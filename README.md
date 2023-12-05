@@ -62,7 +62,7 @@ You can combine three or more gems into special gems with cool abilites.
 * introduce rarity system  
   
 ## KNOWN BUGS & ISSUES
-* enemies getting through crashes the game because its anims are no longer defined
+* enemies getting through crashes the game because their anims are no longer defined
 * beating the last level crashes the game
 * sometimes, shots get caught and the projectile isn't destroyed
 * white gems have poor visibility
